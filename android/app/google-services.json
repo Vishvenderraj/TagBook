@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "914938970242",
+    "project_id": "tagbook-92ca6",
+    "storage_bucket": "tagbook-92ca6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:914938970242:android:b585dc7435191316f8749b",
+        "android_client_info": {
+          "package_name": "com.example.tag_book"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHxl7aiIZM8aPtcoxUtXgD2qSzck1kfSk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
