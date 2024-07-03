@@ -2,15 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
-
+import '../../auth/data/Fetch_ApiData/fetch_apidata.dart';
 import '../../common/styles/styles.dart';
 import '../../common/widgets/form_page.dart';
 import '../R_Response/r_respone.dart';
 import '../menu.dart';
 
+
 class MyProfile extends StatelessWidget {
   const MyProfile({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,7 @@ class MyProfile extends StatelessWidget {
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(
-                            vertical: screenHeight * 0.005),
+                            vertical: screenHeight * 0.007),
                         child: Text(
                           'This is about you only',
                           softWrap: true,
@@ -52,7 +53,7 @@ class MyProfile extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '877879067 : Registered on (20-10-24)',
+                        " $userId : Registered on (${registeredDate?.substring(0,10)})",
                         softWrap: true,
                         style: textStyle(screenHeight * 0.017, FontWeight.w400,
                             Colors.black),
@@ -140,14 +141,14 @@ class MyProfile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SpacedBoxLarge(),
-              SvgPicture.asset('assets/images/Line 3.svg'),
-              const SpacedBoxLarge(),
               Provider.of<Tapped>(context).isTapped?
               SizedBox(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SpacedBoxLarge(),
+                    SvgPicture.asset('assets/images/Line 3.svg'),
+                    const SpacedBoxLarge(),
                     Text(
                       "Future:",
                       style: textStyle(

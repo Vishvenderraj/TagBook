@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'auth/data/Fetch_ApiData/fetch_apidata.dart';
 import 'auth/func/firebase_options/firebase_options.dart';
 import 'auth/func/validate_authdata/validate_authdata.dart';
 import 'intro_page.dart';

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../auth/data/Fetch_ApiData/fetch_apidata.dart';
 import '../auth/func/validate_authdata/validate_authdata.dart';

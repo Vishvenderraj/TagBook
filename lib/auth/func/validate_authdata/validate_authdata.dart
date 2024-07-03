@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/auth/screen/login/log_in.dart';
 
-String token = '';
-String get returnIfToken =>token;
 
 //locally validating userEntered Data
 class UserValidator extends ChangeNotifier {

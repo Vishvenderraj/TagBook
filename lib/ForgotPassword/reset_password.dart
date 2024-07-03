@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:tag_book/auth/screen/login/log_in.dart';
+import 'package:tag_book/intro_page.dart';
 import '../auth/data/Fetch_ApiData/fetch_apidata.dart';
 import '../auth/func/validate_authdata/validate_authdata.dart';
 import '../common/styles/styles.dart';
@@ -10,8 +11,8 @@ import '../common/widgets/custom_fields_and_button.dart';
 
 
 class ResetPassword extends StatefulWidget {
-  const ResetPassword({super.key, required this.userID});
-
+  const ResetPassword({super.key, required this.userID, required this.signedIn});
+  final bool signedIn;
   final String userID;
   @override
   State<ResetPassword> createState() => _ResetPasswordState();
@@ -20,6 +21,7 @@ class ResetPassword extends StatefulWidget {
 class _ResetPasswordState extends State<ResetPassword> {
   TextEditingController passKeyController = TextEditingController();
   TextEditingController rePassKeyController = TextEditingController();
+
 
   @override
   void dispose() {
@@ -206,7 +208,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                ChangeNotifierProvider(
+                                            widget.signedIn?const IntroPage():ChangeNotifierProvider(
                                                     create: (BuildContext
                                                     context) =>
                                                         UserValidator(),
@@ -239,8 +241,9 @@ class _ResetPasswordState extends State<ResetPassword> {
                       surfaceTintColor: Colors.transparent,
                       shadowColor: Colors.transparent),
                   onPressed: () {
+                    widget.signedIn?Navigator.pop(context):
                     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(create: (BuildContext context)=>UserValidator(),
-                        child: const LogIn())), (route) => false);
+                        child: const LogIn(),),), (route) => false);
                   },
                   child: Text(
                     'cancel',

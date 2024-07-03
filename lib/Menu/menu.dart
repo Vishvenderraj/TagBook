@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:tag_book/ForgotPassword/confirm_oldpassword.dart';
 import 'package:tag_book/Menu/MyTags/my_tags.dart';
+import 'package:tag_book/policies/terms&conditions/terms_n_conditions.dart';
 import '../auth/func/validate_authdata/validate_authdata.dart';
 import '../common/styles/styles.dart';
 import '../common/widgets/custom_fields_and_button.dart';
@@ -14,7 +16,6 @@ class Menu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
     bool pressed = Provider.of<Counter>(context).isPressed;
@@ -37,7 +38,7 @@ class Menu extends StatelessWidget {
                       Text(
                         'Menu',
                         style: TextStyle(
-                          fontSize: screenHeight*0.037,
+                          fontSize: screenHeight * 0.037,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                           height: 0,
@@ -46,9 +47,12 @@ class Menu extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.symmetric(
                             vertical: screenHeight * 0.007),
-                        child: Text('hope you find what you looking for',
-                            softWrap: true,
-                            style: textStyle(screenHeight*0.017, FontWeight.w500, Colors.grey)),
+                        child: Text(
+                          'hope you find what you looking for',
+                          softWrap: true,
+                          style: textStyle(screenHeight * 0.017,
+                              FontWeight.w500, Colors.grey),
+                        ),
                       ),
                     ],
                   ),
@@ -82,21 +86,30 @@ class Menu extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChangeNotifierProvider(create:(context)=>Tapped(false),child: const MyProfile()),
+                      builder: (context) => ChangeNotifierProvider(
+                        create: (context) => Tapped(false),
+                        child: const MyProfile(),
+                      ),
                     ),
                   );
-                }, iconData: Icons.arrow_forward_ios, needInnerCircle: false,
+                },
+                iconData: Icons.arrow_forward_ios,
+                needInnerCircle: false,
               ),
               GestureDetector(
-                onTap: (){
-                  Provider.of<Counter>(context,listen: false).change();
+                onTap: () {
+                  Provider.of<Counter>(context, listen: false).change();
                 },
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
                   child: Material(
-                    elevation: pressed?5:0,
+                    elevation: pressed ? 5 : 0,
                     shadowColor: Colors.black,
-                    borderRadius: BorderRadius.only(topLeft: const Radius.circular(30),topRight: const Radius.circular(30),bottomLeft: Radius.circular(pressed?20:30),bottomRight: Radius.circular(pressed?20:30)),
+                    borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(30),
+                        topRight: const Radius.circular(30),
+                        bottomLeft: Radius.circular(pressed ? 20 : 30),
+                        bottomRight: Radius.circular(pressed ? 20 : 30),),
                     child: Column(
                       children: [
                         Container(
@@ -108,15 +121,21 @@ class Menu extends StatelessWidget {
                             children: [
                               ListTile(
                                 leading: CircleAvatar(
-                                    backgroundColor: Colors.green,
-                                  child: Center(child: SvgPicture.asset('assets/images/menu3.svg')),
+                                  backgroundColor: Colors.green,
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                        'assets/images/menu3.svg'),
+                                  ),
                                 ),
-                                title:  Text(
+                                title: Text(
                                   'Security',
-                                  style: textStyle(screenHeight*0.018, FontWeight.bold, Colors.black),
+                                  style: textStyle(screenHeight * 0.018,
+                                      FontWeight.bold, Colors.black),
                                 ),
                                 trailing: Icon(
-                                  pressed?CupertinoIcons.chevron_up:Icons.arrow_forward_ios,
+                                  pressed
+                                      ? CupertinoIcons.chevron_up
+                                      : Icons.arrow_forward_ios,
                                   color: Colors.grey.shade500,
                                   size: 20,
                                 ),
@@ -124,77 +143,124 @@ class Menu extends StatelessWidget {
                             ],
                           ),
                         ),
-                        pressed? SizedBox(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(left: screenWidth*0.004,right:  screenWidth*0.004,top: screenHeight*0.015),
-                                child: ListTile(
-                                    leading:const CircleAvatar(
-                                      backgroundColor: Colors.green,
-                                      child: Icon(Icons.more_horiz_outlined,color: Colors.white,),
+                        pressed
+                            ? SizedBox(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context, (MaterialPageRoute(
+                                            builder: (context) =>
+                                                const ConfirmOldPassword(),
+                                          )),
+                                        );
+                                      },
+                                      child: ListTile(
+                                        leading: const CircleAvatar(
+                                          backgroundColor: Colors.green,
+                                          child: Icon(
+                                            Icons.more_horiz_outlined,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          'Change Pass-Code',
+                                          style: textStyle(screenHeight * 0.018,
+                                              FontWeight.bold, Colors.black),
+                                        ),
+                                      ),
                                     ),
-                                   title: Text('Change Pass-Code',style: textStyle(screenHeight*0.018, FontWeight.bold, Colors.black),)
-                                ),
-                              ),
-                              const Divider(
-                                thickness: 0.5,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: screenWidth*0.004,right:  screenWidth*0.004),
-                                child: ListTile(
-                                    leading:CircleAvatar(
-                                      backgroundColor: Colors.green,
-                                      child: SvgPicture.asset('assets/images/security.svg')
+                                    const Divider(
+                                      thickness: 0.5,
                                     ),
-                                    title: Text('Privacy Policies',style: textStyle(screenHeight*0.018, FontWeight.bold, Colors.black),)
-                                ),
-                              ),
-                              const Divider(thickness: 0.5,),
-                              Padding(
-                                padding: EdgeInsets.only(left: screenWidth*0.004,right:  screenWidth*0.004,top: screenHeight*0.015),
-                                child: ListTile(
-                                    leading:CircleAvatar(
-                                      backgroundColor: Colors.green,
-                                      child: SvgPicture.asset('assets/images/security.svg'),
+                                    ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundColor: Colors.green,
+                                          child: SvgPicture.asset(
+                                              'assets/images/security.svg',
+                                          ),
+                                        ),
+                                        title: Text(
+                                          'Privacy Policies',
+                                          style: textStyle(screenHeight * 0.018,
+                                              FontWeight.bold, Colors.black),
+                                        ),onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),);
+                                    },),
+                                    const Divider(
+                                      thickness: 0.5,
                                     ),
-                                    title: Text('Terms and Conditions',style: textStyle(screenHeight*0.018, FontWeight.bold, Colors.black),)
+                                    ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundColor: Colors.green,
+                                          child: SvgPicture.asset(
+                                              'assets/images/security.svg'),
+                                        ),
+                                        title: Text(
+                                          'Terms and Conditions',
+                                          style: textStyle(screenHeight * 0.018,
+                                              FontWeight.bold, Colors.black),
+                                        ),onTap: (){
+                                          Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),);
+                                    },),
+                                    const SpacedBox(),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ):const SizedBox(),
+                              )
+                            : const SizedBox(),
                       ],
                     ),
                   ),
                 ),
               ),
-              !pressed?MenuOptions(
-                screenHeight: screenHeight,
-                title: 'My Tags',
-                bgColor: Colors.yellow,
-                image: 'assets/images/menu2.svg',
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const MyTags(),),);
-                }, iconData: Icons.arrow_forward_ios, needInnerCircle: false,
-              ):const SizedBox(),
-              !pressed?MenuOptions(
-                screenHeight: screenHeight,
-                title: 'Report Bug',
-                bgColor: Colors.red,
-                image: 'assets/images/menu4.svg',
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const FeedBack(title: 'Report Bug', subtitle: 'we appreciate your support: Thank you'),),);
-                }, iconData: Icons.arrow_forward_ios, needInnerCircle: false,
-              ):const SizedBox(),
+              !pressed
+                  ? MenuOptions(
+                      screenHeight: screenHeight,
+                      title: 'My Tags',
+                      bgColor: Colors.yellow,
+                      image: 'assets/images/menu2.svg',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyTags(),
+                          ),
+                        );
+                      },
+                      iconData: Icons.arrow_forward_ios,
+                      needInnerCircle: false,
+                    )
+                  : const SizedBox(),
+              !pressed
+                  ? MenuOptions(
+                      screenHeight: screenHeight,
+                      title: 'Report Bug',
+                      bgColor: Colors.red,
+                      image: 'assets/images/menu4.svg',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FeedBack(
+                                title: 'Report Bug',
+                                subtitle:
+                                    'we appreciate your support: Thank you'),
+                          ),
+                        );
+                      },
+                      iconData: Icons.arrow_forward_ios,
+                      needInnerCircle: false,
+                    )
+                  : const SizedBox(),
               const SpacedBoxBig(),
               ContButton(
                 showLoader: false,
                 func: () {
-                    logout(context);
-                    Navigator.popUntil(context, (route) => route.isFirst);
+                  logout(context);
+                  Navigator.popUntil(context, (route) => route.isFirst);
                 },
                 txt: 'Logout',
                 bgColor: Colors.black,
@@ -204,7 +270,8 @@ class Menu extends StatelessWidget {
                 onPressed: () {},
                 child: Text(
                   "request features",
-                  style: textStyle(screenHeight*0.015, FontWeight.w700, Colors.grey.shade400),
+                  style: textStyle(screenHeight * 0.015, FontWeight.w700,
+                      Colors.grey.shade400),
                 ),
               ),
               const Spacer(),
@@ -212,7 +279,8 @@ class Menu extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: screenHeight * 0.03),
                 child: Text(
                   "version 0.01",
-                  style: textStyle(screenHeight*0.016, FontWeight.w600, Colors.grey.shade400),
+                  style: textStyle(screenHeight * 0.016, FontWeight.w600,
+                      Colors.grey.shade400),
                 ),
               )
             ],
@@ -230,7 +298,9 @@ class MenuOptions extends StatelessWidget {
     required this.title,
     required this.bgColor,
     required this.image,
-    required this.onTap, required this.iconData, required this.needInnerCircle, 
+    required this.onTap,
+    required this.iconData,
+    required this.needInnerCircle,
   });
 
   final double screenHeight;
@@ -254,21 +324,27 @@ class MenuOptions extends StatelessWidget {
               borderRadius: BorderRadius.circular(30)),
           child: ListTile(
             leading: Container(
-              height: screenHeight*0.09,
-              width: screenWidth*0.09,
+              height: screenHeight * 0.09,
+              width: screenWidth * 0.09,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: needInnerCircle?Border.all(color: Colors.grey.shade300):null,
+                border: needInnerCircle
+                    ? Border.all(color: Colors.grey.shade300)
+                    : null,
                 color: bgColor,
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: SvgPicture.asset(image,fit: BoxFit.scaleDown,),
+                child: SvgPicture.asset(
+                  image,
+                  fit: BoxFit.scaleDown,
+                ),
               ),
             ),
             title: Text(
               title,
-              style: textStyle(screenHeight*0.018, FontWeight.bold, Colors.black),
+              style: textStyle(
+                  screenHeight * 0.018, FontWeight.bold, Colors.black),
             ),
             trailing: Icon(
               iconData,

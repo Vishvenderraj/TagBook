@@ -23,6 +23,7 @@ class _LogInState extends State<LogIn> {
 
   @override
   void initState() {
+    getPolicies();
     mobileEditingController.clear();
     passwordEditingController.clear();
     super.initState();
@@ -259,8 +260,8 @@ class _LogInState extends State<LogIn> {
                   ),
                 );
               },
-              bgcolor: CupertinoColors.white,
-              txtstyle: textStyle(20, FontWeight.bold, Colors.black),
+              bgColor: CupertinoColors.white,
+              textStyle: textStyle(20, FontWeight.bold, Colors.black),
             )
           ],
         ),

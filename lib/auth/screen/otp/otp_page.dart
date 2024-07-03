@@ -88,7 +88,7 @@ class _OTPageState extends State<OTPage> {
       MaterialPageRoute(
         builder: (context) => ChangeNotifierProvider(
           create: (BuildContext context) => UserValidator(),
-          child: ResetPassword(userID: widget.userID),
+          child: ResetPassword(userID: widget.userID, signedIn: false,),
         ),
       ),
       (route) => false,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tag_book/auth/screen/login/log_in.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tag_book/policies/terms&conditions/terms_n_conditions.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
 import '../../data/Fetch_ApiData/fetch_apidata.dart';
@@ -242,7 +243,9 @@ class _SignUpState extends State<SignUp> {
                   ),
                   const SpacedBox(),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions(),),):null;
+                    },
                     child: Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -307,8 +310,8 @@ class _SignUpState extends State<SignUp> {
                   (route) => false,
                 );
               },
-              bgcolor: Colors.white,
-              txtstyle: textStyle(20, FontWeight.bold, Colors.black),
+              bgColor: Colors.white,
+              textStyle: textStyle(20, FontWeight.bold, Colors.black),
             )
           ],
         ),

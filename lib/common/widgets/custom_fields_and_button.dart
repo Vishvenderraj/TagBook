@@ -143,13 +143,13 @@ class BottomPageButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.func,
-    required this.bgcolor,
-    required this.txtstyle,
+    required this.bgColor,
+    required this.textStyle,
   });
   final String text;
   final Function() func;
-  final Color bgcolor;
-  final TextStyle txtstyle;
+  final Color bgColor;
+  final TextStyle textStyle;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -157,16 +157,18 @@ class BottomPageButton extends StatelessWidget {
       height: MediaQuery.sizeOf(context).height / 12,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            surfaceTintColor: Colors.transparent,
+            surfaceTintColor: bgColor,
+            foregroundColor: bgColor,
+            splashFactory: NoSplash.splashFactory,
             side: const BorderSide(color: Colors.black, width: 2.0),
-            backgroundColor: bgcolor,
+            backgroundColor: bgColor,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(50)),
             )),
         onPressed: func,
         child: Text(
           text,
-          style: txtstyle,
+          style: textStyle,
         ),
       ),
     );
