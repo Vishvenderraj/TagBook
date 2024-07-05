@@ -101,6 +101,7 @@ Future<void> getPolicies()async {
       }
 
 }
+
 Future<bool> logInSignup(String mobile, String password, String type) async {
   // Define the endpoint URL
   String url = 'https://tag-book-1.onrender.com/api/v1/auth/login'; // Adjust URL if needed

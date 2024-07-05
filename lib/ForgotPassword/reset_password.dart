@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:tag_book/auth/screen/login/log_in.dart';
-import 'package:tag_book/intro_page.dart';
+import 'package:tag_book/root/intro_page.dart';
 import '../auth/data/Fetch_ApiData/fetch_apidata.dart';
 import '../auth/func/validate_authdata/validate_authdata.dart';
 import '../common/styles/styles.dart';

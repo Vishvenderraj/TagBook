@@ -11,7 +11,7 @@ import '../../../common/widgets/custom_fields_and_button.dart';
 import '../../data/Fetch_ApiData/fetch_apidata.dart';
 import '../../data/Fetch_FirebaseAuth/firebase_auth.dart';
 import '../../func/validate_authdata/validate_authdata.dart';
-import '../../../intro_page.dart';
+import '../../../root/intro_page.dart';
 
 class OTPage extends StatefulWidget {
   const OTPage(

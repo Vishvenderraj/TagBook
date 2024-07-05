@@ -6,7 +6,7 @@ import 'package:tag_book/auth/screen/signup/sign_up.dart';
 import '../../../ForgotPassword/forgot_password.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
-import '../../../intro_page.dart';
+import '../../../root/intro_page.dart';
 import '../../data/Fetch_ApiData/fetch_apidata.dart';
 import '../../func/validate_authdata/validate_authdata.dart';
 
@@ -23,7 +23,6 @@ class _LogInState extends State<LogIn> {
 
   @override
   void initState() {
-    getPolicies();
     mobileEditingController.clear();
     passwordEditingController.clear();
     super.initState();
@@ -48,6 +47,10 @@ class _LogInState extends State<LogIn> {
       body: SafeArea(
         child: Column(
           children: [
+            GestureDetector(
+              onTap: (){Navigator.push(context,MaterialPageRoute(builder: (context)=>const IntroPage(),),);},
+              child: Text('CLICK ON ME',style: TextStyle(color: Colors.red),),
+            ),
             Padding(
               padding: EdgeInsets.only(
                   top: screenHeight * 0.03,

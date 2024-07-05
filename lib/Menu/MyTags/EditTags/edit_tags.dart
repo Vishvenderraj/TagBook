@@ -4,23 +4,30 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
+import '../wigdets/fetch_tagicons.dart';
+import '../wigdets/fetch_tags.dart';
+import '../wigdets/provider_icos.dart';
 
-class EditTags extends StatelessWidget {
+class EditTags extends StatefulWidget {
   const EditTags({super.key, required this.addTag});
- final bool addTag;
+  final bool addTag;
+
+  @override
+  State<EditTags> createState() => _EditTagsState();
+}
+
+class _EditTagsState extends State<EditTags> {
+  String iconId = '';
+  bool showLoader = false;
+  TextEditingController tagName = TextEditingController();
+  TextEditingController descr = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    List<TagWidgets> listDate = [
-      TagWidgets(image:'assets/images/workout.svg', func: (){ Provider.of<Tapped>(context,listen: false).tapped();},),
-      TagWidgets(image:'assets/images/snapchat.svg', func: (){ Provider.of<Tapped>(context,listen: false).tapped();}),
-      TagWidgets(image:'assets/images/cooking.svg', func: (){ Provider.of<Tapped>(context,listen: false).tapped();}),
-      TagWidgets(image:'assets/images/shopping.svg', func: (){ Provider.of<Tapped>(context,listen: false).tapped();}),
-      TagWidgets(image:'assets/images/youtube.svg', func: (){ Provider.of<Tapped>(context,listen: false).tapped();}),
-      TagWidgets(image:'assets/images/workout.svg', func: (){ Provider.of<Tapped>(context,listen: false).tapped();})
-    ];
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
@@ -39,9 +46,9 @@ class EditTags extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                       addTag? 'Create a Tag':'Edit Tags',
+                        widget.addTag ? 'Create a Tag' : 'Edit Tags',
                         style: TextStyle(
-                          fontSize: screenHeight*0.037,
+                          fontSize: screenHeight * 0.037,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                           height: 0,
@@ -50,9 +57,14 @@ class EditTags extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.symmetric(
                             vertical: screenHeight * 0.005),
-                        child: Text(addTag?'you can manage tags: from my profile': 'manage your tags',
-                            softWrap: true,
-                            style: textStyle(screenHeight*0.017, FontWeight.w500, Colors.grey)),
+                        child: Text(
+                          widget.addTag
+                              ? 'you can manage tags: from my profile'
+                              : 'manage your tags',
+                          softWrap: true,
+                          style: textStyle(screenHeight * 0.017,
+                              FontWeight.w500, Colors.grey),
+                        ),
                       ),
                     ],
                   ),
@@ -79,77 +91,165 @@ class EditTags extends StatelessWidget {
               const SpacedBoxLarge(),
               Text(
                 'Enter Tag Name',
-                style: textStyle(screenHeight*0.021, FontWeight.w700, Colors.black),
+                style: textStyle(
+                    screenHeight * 0.022, FontWeight.w900, Colors.black),
               ),
               const SpacedBox(),
               CustomTextField(
-                  text: 'Workout',
-                  iconData: null,
-                  maxLen: 20,
-                  suffixIcon: false,
-                  preffixIcon: true,
-                  func: (value) {}, controller: null,
-                  keyboardType: TextInputType.text, validField: false, onPressed: () {  }, visibility: false,),
+                text: 'Workout',
+                iconData: null,
+                maxLen: 20,
+                suffixIcon: false,
+                preffixIcon: true,
+                func: (value) {},
+                controller: tagName,
+                keyboardType: TextInputType.text,
+                validField: true,
+                onPressed: () {},
+                visibility: false,
+              ),
               const SpacedBoxBig(),
               Text(
                 'Select Icon',
-                style: textStyle(screenHeight*0.021, FontWeight.w700, Colors.black),
+                style: textStyle(
+                    screenHeight * 0.022, FontWeight.w900, Colors.black),
               ),
-              SizedBox(
-                width: screenWidth,
-                height: screenHeight * 0.1,
-                child: ListView.builder(
-                  itemCount: listDate.length,
-                  padding: const EdgeInsets.symmetric(vertical:15.5),
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) => listDate[index],
+              FutureBuilder<List<FetchIcons>>(
+                future: fetchAllIconData(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No icons found'));
+                  } else {
+                    final icons = snapshot.data!;
+                    return Consumer<IconProvider>(
+                      builder: (context, iconProvider, child) {
+                        return SizedBox(
+                          height: screenHeight * 0.065,
+                          width: screenWidth,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: icons.length,
+                            itemBuilder: (context, index) {
+                              final iconData = icons[index];
+                              return IconSelection(
+                                image: iconData.iconImage,
+                                selectedIcon: iconProvider.selectedTagId == iconData.id,
+                                iconID: iconData.id,
+                                func: () {
+                                  iconProvider.selectTag(iconData.id);
+                                },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+              Text(
+                'Enter Description',
+                style: textStyle(
+                  screenHeight * 0.022,
+                  FontWeight.w700,
+                  Colors.black,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('Enter Description',style: textStyle(screenHeight*0.022, FontWeight.w700, Colors.black,),),
-              ),
+              const SpacedBox(),
               Container(
-                height: screenHeight*0.15,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(20),
+                height: screenHeight * 0.14,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
                     color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300)
-                ),
+                    border: Border.all(color: Colors.grey.shade400)),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0,vertical: 10),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.03,
+                      vertical: screenHeight * 0.004),
                   child: TextFormField(
                     expands: true,
                     maxLines: null,
                     cursorColor: Colors.black,
                     cursorWidth: 1,
                     maxLength: 150,
+                    controller: descr,
                     style: const TextStyle(color: Colors.black),
-                    decoration:  InputDecoration(
+                    decoration: InputDecoration(
                       counterText: '',
                       hintText: 'Please share your feedback',
-                      hintStyle: TextStyle(color: Colors.grey.shade300,fontWeight: FontWeight.w400),
+                      hintStyle: TextStyle(
+                          color: Colors.grey.shade300,
+                          fontWeight: FontWeight.w400),
                       focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent, width: 1.2),
+                        borderSide:
+                            BorderSide(color: Colors.transparent, width: 1.2),
                       ),
                       enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent, width: 1.2),
+                        borderSide:
+                            BorderSide(color: Colors.transparent, width: 1.2),
                       ),
                     ),
                   ),
                 ),
               ),
               const SpacedBoxBig(),
-              ContButton(func: (){}, txt: addTag?'Create Tag':'Update', bgColor: addTag?Colors.black:Colors.grey.shade800, txtColor: addTag?Colors.white:Colors.grey.shade300, showLoader: false,),
+              ContButton(
+                func: widget.addTag
+                    ? () async {
+                        {
+                          setState(() {
+                            showLoader = true;
+                          });
+                          try {
+                            await createTag(tagName.text, iconId, descr.text);
+                          } catch (e) {
+                            setState(() {
+                              showLoader = false;
+                            });
+                            debugPrint(e.toString());
+                          }
+                        }
+                      }
+                    : () {
+                        editTag(tagName.text);
+                      },
+                txt: widget.addTag ? 'Create Tag' : 'Update',
+                bgColor: widget.addTag ? Colors.black : Colors.grey.shade800,
+                txtColor: widget.addTag ? Colors.white : Colors.grey.shade300,
+                showLoader: showLoader,
+              ),
               const SpacedBoxBig(),
-              addTag?const SizedBox():Container(
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red.shade300),
-                    borderRadius: BorderRadius.circular(30)
-                ),
-                child: ContButton(func: (){}, txt: 'Delete', bgColor: Colors.white, txtColor: Colors.red, showLoader: false,),),
+              widget.addTag
+                  ? const SizedBox()
+                  : Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.red.shade300),
+                          borderRadius: BorderRadius.circular(30)),
+                      child: ContButton(
+                        func: () {},
+                        txt: 'Delete',
+                        bgColor: Colors.white,
+                        txtColor: Colors.red,
+                        showLoader: false,
+                      ),
+                    ),
               const Spacer(),
-              addTag?Text("keep all your important links and texts tagged in one place, ready whenever you need them. ",style: textStyle(screenHeight*0.017, FontWeight.w500, Colors.black),)
-                  :const SizedBox(),
+              widget.addTag
+                  ? Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: screenHeight * 0.027,
+                          horizontal: screenWidth * 0.027),
+                      child: Text(
+                        "keep all your important links and texts tagged in one place, ready whenever you need them. ",
+                        style: textStyle(screenHeight * 0.017, FontWeight.w500,
+                            Colors.black),
+                      ),
+                    )
+                  : const SizedBox(),
             ],
           ),
         ),
@@ -158,48 +258,55 @@ class EditTags extends StatelessWidget {
   }
 }
 
-class TagWidgets extends StatelessWidget {
-  const TagWidgets({
+class IconSelection extends StatelessWidget {
+  const IconSelection({
     super.key,
-    required this.image, required this.func,
+    required this.image,
+    required this.func,
+    required this.selectedIcon,
+    required this.iconID,
   });
 
   final String image;
+  final bool selectedIcon;
   final Function()? func;
+  final String iconID;
   @override
   Widget build(BuildContext context) {
-    bool isTapped = Provider.of<Tapped>(context).isTapped;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
     return Padding(
-      padding: EdgeInsets.only(right: screenWidth*0.04),
+      padding: EdgeInsets.only(right: screenWidth * 0.04),
       child: GestureDetector(
-        onTap: () {
-          Provider.of<Tapped>(context,listen: false).tapped();
-        },
+        onTap: func,
         child: Container(
           width: screenWidth * 0.13,
-          height: screenHeight*0.13,
-          padding: EdgeInsets.symmetric(horizontal: screenWidth*0.008,vertical: screenHeight*0.008),
+          height: screenHeight * 0.13,
+          padding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.008, vertical: screenHeight * 0.008),
           decoration: BoxDecoration(
-            border: Border.all(color: isTapped?Colors.blue:Colors.grey.shade300),
+            border: Border.all(
+                color: selectedIcon ? Colors.blue : Colors.grey.shade300),
             shape: BoxShape.circle,
           ),
           child: Material(
             color: Colors.transparent,
-            elevation: isTapped?2:0,
+            elevation: selectedIcon ? 2 : 0,
             shape: const CircleBorder(),
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 shape: BoxShape.circle,
-                color: isTapped?Colors.blue:Colors.white,
+                color: selectedIcon ? Colors.blue : Colors.white,
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth*0.011,vertical: screenHeight*0.011),
-                child: SvgPicture.asset(
+                padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.011,
+                    vertical: screenHeight * 0.011),
+                child: SvgPicture.network(
                   image,
                   fit: BoxFit.contain,
+                  color: selectedIcon ? CupertinoColors.white : null,
                 ),
               ),
             ),

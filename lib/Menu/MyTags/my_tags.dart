@@ -2,11 +2,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import '../../common/styles/styles.dart';
 import 'EditTags/edit_tags.dart';
 
-class MyTags extends StatelessWidget {
+
+class MyTags extends StatefulWidget {
   const MyTags({super.key});
+
+  @override
+  State<MyTags> createState() => _MyTagsState();
+}
+
+class _MyTagsState extends State<MyTags> {
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +76,9 @@ class MyTags extends StatelessWidget {
                 ],
               ),
               const SpacedBoxLarge(),
-              SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/workout.svg', title: 'workout', func: (){
+              SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/workout.svg', title: 'workout', func: ()async{
                 Navigator.push(context, MaterialPageRoute(builder: (context){
-                  return ChangeNotifierProvider(create: (context)=> Tapped(false),child: const EditTags(addTag: false,),);
+                  return ChangeNotifierProvider(create: (context)=> IconProvider(),child: const EditTags(addTag: false,),);
                 },),);
               },),
               SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/youtube.svg', title: 'youtube motivation', func: null,),

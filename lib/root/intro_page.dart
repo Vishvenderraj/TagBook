@@ -2,13 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import 'package:tag_book/Menu/Profile/my_profile.dart';
-import 'package:tag_book/auth/func/validate_authdata/validate_authdata.dart';
-import 'Menu/MyTags/EditTags/edit_tags.dart';
-import 'Menu/menu.dart';
-import 'auth/data/Fetch_ApiData/fetch_apidata.dart';
-import 'common/styles/styles.dart';
-import 'common/widgets/custom_fields_and_button.dart';
+import '../Menu/MyTags/EditTags/edit_tags.dart';
+import '../Menu/menu.dart';
+import '../auth/data/Fetch_ApiData/fetch_apidata.dart';
+import '../common/styles/styles.dart';
+import '../common/widgets/custom_fields_and_button.dart';
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -33,6 +33,7 @@ class _IntroPageState extends State<IntroPage> {
     return PopScope(
       canPop: false,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
         body: SafeArea(
           child: Column(
@@ -158,18 +159,30 @@ class _IntroPageState extends State<IntroPage> {
                             GestureDetector(
                               onTap: () {
                                 showModalBottomSheet(
+                                  enableDrag: false,
+                                  isScrollControlled: true,
+                                  isDismissible: true,
                                   context: context,
-                                  builder: (context) => ChangeNotifierProvider(
-                                    create: (context) => Tapped(false),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20)),
-                                      height: screenHeight / 2,
-                                      width: screenWidth,
-                                      child: const EditTags(
-                                        addTag: true,
-                                      ),
+                                  builder: (context) => DraggableScrollableSheet(
+                                    initialChildSize: 0.5,
+                                    minChildSize: 0.5,
+                                    maxChildSize: 1.0,
+                                    expand: false,
+                                    builder: (BuildContext context, ScrollController scrollController)=> ListView(
+                                      controller: scrollController,
+                                      children: [
+                                        Container(
+                                            height: screenHeight,
+                                            width: screenWidth,
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20))
+                                            ),
+                                            child: ChangeNotifierProvider(create:(BuildContext context)=>IconProvider(),child: Padding(
+                                              padding: EdgeInsets.symmetric(horizontal: screenWidth*0.01,vertical: screenHeight*0.028),
+                                              child: const EditTags(addTag: true),
+                                            ),),)
+                                      ]
                                     ),
                                   ),
                                 );
@@ -244,3 +257,6 @@ class _IntroPageState extends State<IntroPage> {
     );
   }
 }
+
+
+

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'auth/data/Fetch_ApiData/fetch_apidata.dart';
 import 'auth/func/firebase_options/firebase_options.dart';
 import 'auth/func/validate_authdata/validate_authdata.dart';
-import 'intro_page.dart';
+import 'root/intro_page.dart';
 import 'auth/screen/login/log_in.dart';
 
 Future<void> main() async {
