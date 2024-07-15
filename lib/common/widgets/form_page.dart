@@ -1,21 +1,50 @@
+import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:tag_book/common/widgets/loader_provider.dart';
+import 'package:tag_book/common/widgets/sent_feedback_api.dart';
 import '../styles/styles.dart';
 import 'custom_fields_and_button.dart';
 
-class FeedBack extends StatelessWidget {
-  const FeedBack({super.key, required this.title, required this.subtitle});
+class FeedBack extends StatefulWidget {
+  const FeedBack({super.key, required this.title, required this.subtitle, required this.type});
   final String title;
   final String subtitle;
+  final String type;
+  @override
+  State<FeedBack> createState() => _FeedBackState();
+}
+
+class _FeedBackState extends State<FeedBack> {
+  File? _selectedImage;
+
+  Future _imagePickerGallery() async {
+    final returnedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+    setState(
+          () {
+        returnedImage!=null? _selectedImage = File(returnedImage.path):null;
+      },
+    );
+  }
+  TextEditingController feedbackTextController = TextEditingController();
 
   @override
+
+  void dispose() {
+    feedbackTextController.dispose();
+    super.dispose();
+  }
+  @override
   Widget build(BuildContext context) {
-    int flag = 1;
+    final List<String?> listOfImages = [];
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: CupertinoColors.white,
       body: SafeArea(
         child: Padding(
@@ -36,7 +65,7 @@ class FeedBack extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            title,
+                            widget.title,
                             style: TextStyle(fontSize:screenHeight*0.037,
                               fontWeight:FontWeight.bold,
                               color: Colors.black,
@@ -44,7 +73,7 @@ class FeedBack extends StatelessWidget {
                           ),
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: screenHeight*0.005),
-                            child: Text(subtitle,
+                            child: Text(widget.subtitle,
                               softWrap: true,
                               style: textStyle(screenHeight*0.017, FontWeight.w500, Colors.grey),),
                           ),
@@ -89,6 +118,7 @@ class FeedBack extends StatelessWidget {
                     cursorWidth: 1,
                     maxLength: 150,
                     style: const TextStyle(color: Colors.black),
+                    controller: feedbackTextController,
                     decoration:  InputDecoration(
                       counterText: '',
                       hintText: 'Please share your feedback',
@@ -106,19 +136,24 @@ class FeedBack extends StatelessWidget {
               const SpacedBox(),
               Text('Upload Image',style: textStyle(screenHeight*0.0225, FontWeight.w400, Colors.black),),
               const SpacedBox(),
-               (flag == 1)?(
+               (_selectedImage == null)?(
                   Column(
                  crossAxisAlignment: CrossAxisAlignment.start,
                  children: [
-                   CircleAvatar(
-                     backgroundColor: Colors.transparent,
-                     radius: 35,
-                     child: DottedBorder(
-                       color: Colors.grey.shade400,
-                       borderType: BorderType.Circle,
-                       radius: const Radius.circular(50),
-                       strokeCap: StrokeCap.butt,
-                       child: Center(child: SvgPicture.asset('assets/images/download.svg'),),),
+                   GestureDetector(
+                     onTap:()async{
+                       await _imagePickerGallery();
+                     },
+                     child: CircleAvatar(
+                       backgroundColor: Colors.transparent,
+                       radius: 35,
+                       child: DottedBorder(
+                         color: Colors.grey.shade400,
+                         borderType: BorderType.Circle,
+                         radius: const Radius.circular(50),
+                         strokeCap: StrokeCap.butt,
+                         child: Center(child: SvgPicture.asset('assets/images/download.svg'),),),
+                     ),
                    ),
                    const SpacedBox(),
                    Text('in order to explain your suggestions visually',style: textStyle(screenHeight*0.017, FontWeight.w400, Colors.grey.shade500),),
@@ -128,7 +163,9 @@ class FeedBack extends StatelessWidget {
                mainAxisAlignment: MainAxisAlignment.start,
                children: [
                  GestureDetector(
-                   onTap: (){
+                   onTap:()async{
+                     await _imagePickerGallery();
+                     _selectedImage!=null?listOfImages.add(_selectedImage?.path):null;
                    },
                    child: Padding(
                      padding: EdgeInsets.only(right: screenWidth*0.05),
@@ -146,8 +183,25 @@ class FeedBack extends StatelessWidget {
                ],
                              ),
               const SpacedBoxBig(),
-              ContButton(func: (){}, txt: 'Submit', bgColor: Colors.black, txtColor: CupertinoColors.white, showLoader: false,)
-
+              ContButton(func: _selectedImage != null?() async{
+                Provider.of<ShowLoader>(context,listen: false).startLoader();
+                if(await sentFeedback(widget.type, feedbackTextController.text, listOfImages) && (mounted))
+                  {
+                    showBottomSheet(context: context, builder: (context)=>Container(
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: SizedBox(
+                        width: screenWidth,
+                        height: screenHeight/4,
+                        child: Text("UPLOADED",style: textStyle(30, FontWeight.w300, Colors.black),),
+                      ),
+                    ),
+                    );
+                  }
+                Provider.of<ShowLoader>(context,listen: false).stopLoader();
+                feedbackTextController.clear();
+                _selectedImage = null;
+              }:(){}, txt: 'Submit', bgColor: Colors.black, txtColor: CupertinoColors.white, showLoader: Provider.of<ShowLoader>(context).showLoader,),
             ],
           ),
         ),

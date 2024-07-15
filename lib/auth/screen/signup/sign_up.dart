@@ -36,10 +36,10 @@ class _SignUpState extends State<SignUp> {
   bool showLoader = false;
   @override
   Widget build(BuildContext context) {
-
     bool validMobile = Provider.of<UserValidator>(context).validUserId;
     bool validPassword = Provider.of<UserValidator>(context).validPassKey;
-    bool validConfirmPassword = Provider.of<UserValidator>(context).validRePassKey;
+    bool validConfirmPassword =
+        Provider.of<UserValidator>(context).validRePassKey;
 
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
@@ -85,17 +85,19 @@ class _SignUpState extends State<SignUp> {
                                 FontWeight.w400, Colors.black),
                           ),
                         ),
-                        userExist ? Text(
-                          'User already exists',
-                          style: textStyle(screenHeight * 0.017,
-                              FontWeight.w400, Colors.red),
-                        ): validMobile
-                            ? const SizedBox()
-                            : Text(
-                          'Enter valid phone number',
-                          style: textStyle(screenHeight * 0.015,
-                              FontWeight.w400, Colors.red),
-                        )
+                        userExist
+                            ? Text(
+                                'User already exists',
+                                style: textStyle(screenHeight * 0.017,
+                                    FontWeight.w400, Colors.red),
+                              )
+                            : validMobile
+                                ? const SizedBox()
+                                : Text(
+                                    'Enter valid phone number',
+                                    style: textStyle(screenHeight * 0.015,
+                                        FontWeight.w400, Colors.red),
+                                  )
                       ],
                     ),
                   ),
@@ -109,7 +111,7 @@ class _SignUpState extends State<SignUp> {
                     func: (value) {},
                     controller: mobileEditingController,
                     keyboardType: TextInputType.phone,
-                    validField: userExist?false:validMobile,
+                    validField: userExist ? false : validMobile,
                     onPressed: () {},
                     visibility: false,
                   ),
@@ -130,7 +132,7 @@ class _SignUpState extends State<SignUp> {
                             ? const SizedBox()
                             : Expanded(
                                 child: Text(
-                                  textDirection:TextDirection.rtl,
+                                  textDirection: TextDirection.rtl,
                                   'Min. 8 len, 1cap,1num,1special ',
                                   style: textStyle(screenHeight * 0.015,
                                       FontWeight.w400, Colors.red),
@@ -204,18 +206,25 @@ class _SignUpState extends State<SignUp> {
                   ContButton(
                     showLoader: showLoader,
                     func: () async {
-                      Provider.of<UserValidator>(context, listen: false).validateUserID(mobileEditingController.text);
-                      Provider.of<UserValidator>(context, listen: false).validatePassword(passwordEditingController.text);
-                      Provider.of<UserValidator>(context, listen: false).validateRePassword(rePasswordEditingController.text, passwordEditingController.text);
+                      Provider.of<UserValidator>(context, listen: false)
+                          .validateUserID(mobileEditingController.text);
+                      Provider.of<UserValidator>(context, listen: false)
+                          .validatePassword(passwordEditingController.text);
+                      Provider.of<UserValidator>(context, listen: false)
+                          .validateRePassword(rePasswordEditingController.text,
+                              passwordEditingController.text);
 
-                      if (Provider.of<UserValidator>(context, listen: false).validUserId &&
-                          Provider.of<UserValidator>(context, listen: false).validPassKey &&
-                          Provider.of<UserValidator>(context, listen: false).validRePassKey
-                      ) {
+                      if (Provider.of<UserValidator>(context, listen: false)
+                              .validUserId &&
+                          Provider.of<UserValidator>(context, listen: false)
+                              .validPassKey &&
+                          Provider.of<UserValidator>(context, listen: false)
+                              .validRePassKey) {
                         setState(() {
                           showLoader = true;
                         });
-                        if (await checkUserData(mobileEditingController.text) && (mounted)) {
+                        if (await checkUserData(mobileEditingController.text) &&
+                            (mounted)) {
                           setState(() {
                             showLoader = false;
                             userExist = true;
@@ -225,14 +234,15 @@ class _SignUpState extends State<SignUp> {
                             showLoader = false;
                             userExist = false;
                           });
-                          Navigator.push(context, MaterialPageRoute(
-                            builder: (context) => OTPage(
-                              fromResetPass: false,
-                              userID: mobileEditingController.text,
-                              userPassKey: passwordEditingController.text,
-
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OTPage(
+                                fromResetPass: false,
+                                userID: mobileEditingController.text,
+                                userPassKey: passwordEditingController.text,
+                              ),
                             ),
-                          ),
                           );
                         }
                       }
@@ -243,8 +253,18 @@ class _SignUpState extends State<SignUp> {
                   ),
                   const SpacedBox(),
                   GestureDetector(
-                    onTap: () {
-                      getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions(),),):null;
+                    onTap: () async {
+                      await getPolicies(type: 'termsAndConditions');
+                      if (!mounted) return;
+                      getSubtitle.isNotEmpty && terms.isNotEmpty
+                          ? Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const TermsAndConditions(),
+                              ),
+                            )
+                          : null;
                     },
                     child: Center(
                       child: Row(

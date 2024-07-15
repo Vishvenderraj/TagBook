@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import '../../auth/data/Fetch_ApiData/fetch_apidata.dart';
 import '../../common/styles/styles.dart';
 import '../../common/widgets/form_page.dart';
 import '../R_Response/r_respone.dart';
@@ -10,9 +9,10 @@ import '../menu.dart';
 
 
 class MyProfile extends StatelessWidget {
-  const MyProfile({super.key});
+  const MyProfile({super.key, required this.userID, required this.regDates});
 
-
+  final String userID;
+  final String regDates;
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
@@ -53,7 +53,7 @@ class MyProfile extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        " $userId : Registered on (${registeredDate?.substring(0,10)})",
+                        " $userID : Registered on ${regDates.substring(0,10)}",
                         softWrap: true,
                         style: textStyle(screenHeight * 0.017, FontWeight.w400,
                             Colors.black),
@@ -99,7 +99,7 @@ class MyProfile extends StatelessWidget {
                               builder: (context) => const FeedBack(
                                 title: 'Feedback',
                                 subtitle:
-                                    'thank you for using this application',
+                                    'thank you for using this application', type: 'reportBugs',
                               ),
                             ),
                           );

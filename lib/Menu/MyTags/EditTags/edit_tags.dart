@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:tag_book/common/widgets/loader_provider.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
 import '../wigdets/fetch_tagicons.dart';
@@ -9,18 +10,26 @@ import '../wigdets/fetch_tags.dart';
 import '../wigdets/provider_icos.dart';
 
 class EditTags extends StatefulWidget {
-  const EditTags({super.key, required this.addTag});
+  const EditTags({super.key, required this.addTag, this.tagID, required this.iconLists, this.iconID, this.tagDescr, this.tagName});
   final bool addTag;
+  final String? tagID;
+  final String? iconID;
+  final String? tagDescr;
+  final String? tagName;
 
+  final List<FetchIcons> iconLists;
   @override
   State<EditTags> createState() => _EditTagsState();
 }
 
 class _EditTagsState extends State<EditTags> {
-  String iconId = '';
-  bool showLoader = false;
   TextEditingController tagName = TextEditingController();
   TextEditingController descr = TextEditingController();
+  @override
+  void initState() {
+    widget.addTag?null:(tagName.text = widget.tagName!,descr.text = widget.tagDescr!);
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
@@ -89,14 +98,22 @@ class _EditTagsState extends State<EditTags> {
                 ],
               ),
               const SpacedBoxLarge(),
-              Text(
-                'Enter Tag Name',
-                style: textStyle(
-                    screenHeight * 0.022, FontWeight.w900, Colors.black),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Enter Tag Name',
+                    style: textStyle(
+                        screenHeight * 0.022, FontWeight.w900, Colors.black),
+                  ),
+                  widget.addTag?Provider.of<TagEditProvider>(context).validTagName?const SizedBox():Text(
+                    "can't be empty",style: textStyle(screenHeight * 0.017, FontWeight.w400, Colors.red),
+                  ):const SizedBox(),
+                ],
               ),
               const SpacedBox(),
               CustomTextField(
-                text: 'Workout',
+                text:'TagName',
                 iconData: null,
                 maxLen: 20,
                 suffixIcon: false,
@@ -104,40 +121,40 @@ class _EditTagsState extends State<EditTags> {
                 func: (value) {},
                 controller: tagName,
                 keyboardType: TextInputType.text,
-                validField: true,
+                validField: Provider.of<TagEditProvider>(context).validTagName,
                 onPressed: () {},
                 visibility: false,
               ),
               const SpacedBoxBig(),
-              Text(
-                'Select Icon',
-                style: textStyle(
-                    screenHeight * 0.022, FontWeight.w900, Colors.black),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Icon',
+                    style: textStyle(
+                        screenHeight * 0.022, FontWeight.w900, Colors.black),
+                  ), Provider.of<IconProvider>(context).isSelected?const SizedBox():Text(
+                    'Please select an icon',
+                    style: textStyle(
+                        screenHeight * 0.017, FontWeight.w400, Colors.red),
+                  )
+                ],
               ),
-              FutureBuilder<List<FetchIcons>>(
-                future: fetchAllIconData(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No icons found'));
-                  } else {
-                    final icons = snapshot.data!;
-                    return Consumer<IconProvider>(
+              const SpacedBox(),
+                     Consumer<IconProvider>(
                       builder: (context, iconProvider, child) {
                         return SizedBox(
                           height: screenHeight * 0.065,
                           width: screenWidth,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: icons.length,
+                            itemCount: widget.iconLists.length,
                             itemBuilder: (context, index) {
-                              final iconData = icons[index];
+                              final iconData = widget.iconLists[index];
+                              final selected = widget.addTag?iconProvider.selectedIconId == iconData.id : iconProvider.selectedIconId == null? iconData.id == widget.iconID : iconProvider.selectedIconId == iconData.id;
                               return IconSelection(
                                 image: iconData.iconImage,
-                                selectedIcon: iconProvider.selectedTagId == iconData.id,
+                                selectedIcon: selected,
                                 iconID: iconData.id,
                                 func: () {
                                   iconProvider.selectTag(iconData.id);
@@ -147,17 +164,28 @@ class _EditTagsState extends State<EditTags> {
                           ),
                         );
                       },
-                    );
-                  }
-                },
-              ),
-              Text(
-                'Enter Description',
-                style: textStyle(
-                  screenHeight * 0.022,
-                  FontWeight.w700,
-                  Colors.black,
-                ),
+                    ),
+
+              const SpacedBox(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Enter Description',
+                    style: textStyle(
+                      screenHeight * 0.022,
+                      FontWeight.w700,
+                      Colors.black,
+                    ),
+                  ),widget.addTag?Provider.of<TagEditProvider>(context).validDescr?const SizedBox():Text(
+                    'please enter description',
+                    style: textStyle(
+                      screenHeight * 0.017,
+                      FontWeight.w400,
+                      Colors.red,
+                    ),
+                  ):const SizedBox(),
+                ],
               ),
               const SpacedBox(),
               Container(
@@ -165,7 +193,8 @@ class _EditTagsState extends State<EditTags> {
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade400)),
+                    border: Border.all(color: Provider.of<TagEditProvider>(context).validDescr?Colors.grey.shade400:Colors.red),
+                ),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.03,
@@ -173,6 +202,9 @@ class _EditTagsState extends State<EditTags> {
                   child: TextFormField(
                     expands: true,
                     maxLines: null,
+                    onTapOutside: (PointerDownEvent event){
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
                     cursorColor: Colors.black,
                     cursorWidth: 1,
                     maxLength: 150,
@@ -198,29 +230,86 @@ class _EditTagsState extends State<EditTags> {
               ),
               const SpacedBoxBig(),
               ContButton(
-                func: widget.addTag
-                    ? () async {
-                        {
-                          setState(() {
-                            showLoader = true;
-                          });
-                          try {
-                            await createTag(tagName.text, iconId, descr.text);
-                          } catch (e) {
-                            setState(() {
-                              showLoader = false;
-                            });
-                            debugPrint(e.toString());
+                  func: widget.addTag
+                      ? () async {
+                             Provider.of<IconProvider>(context,listen: false).checkIfSelected(Provider.of<IconProvider>(context,listen: false).selectedIconId);
+                             Provider.of<TagEditProvider>(context,listen: false).checkIfValidInput(tagName.text.isEmpty, descr.text.isEmpty);
+
+                          if(tagName.text.isNotEmpty && Provider.of<IconProvider>(context,listen: false).selectedIconId!=null && descr.text.isNotEmpty)
+                          {
+                            Provider.of<ShowLoader>(context,listen: false).startLoader();
+                            if(await createTag(tagName.text, Provider.of<IconProvider>(context,listen: false).selectedIconId!, descr.text) && (mounted))
+                              {
+
+                                Provider.of<ShowLoader>(context,listen: false).stopLoader();
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) => Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: screenWidth * 0.07,
+                                          vertical: screenHeight * 0.04),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(
+                                                width: screenWidth * 0.07,
+                                              ),
+                                              SvgPicture.asset(
+                                                  'assets/images/passkey.svg'),
+                                            ],
+                                          ),
+                                          const SpacedBoxBig(),
+                                          Text(
+                                            'New Tag is available',
+                                            style: textStyle(screenHeight * 0.016,
+                                                FontWeight.w400, Colors.black),
+                                          ),
+                                          const SpacedBox(),
+                                          Text(
+                                            'New Tag has been created',
+                                            style: textStyle(screenHeight * 0.016,
+                                                FontWeight.w400, Colors.black),
+                                          ),
+                                          const SpacedBoxBig(),
+                                          ContButton(
+                                              showLoader: false,
+                                              func: () {
+                                                Navigator.pop(context);
+                                              },
+                                              txt: 'Okay',
+                                              bgColor: Colors.black,
+                                              txtColor: CupertinoColors.white)
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                          }
+                          else{
+                            Provider.of<ShowLoader>(context,listen: false).stopLoader();
                           }
                         }
-                      }
-                    : () {
-                        editTag(tagName.text);
-                      },
-                txt: widget.addTag ? 'Create Tag' : 'Update',
-                bgColor: widget.addTag ? Colors.black : Colors.grey.shade800,
-                txtColor: widget.addTag ? Colors.white : Colors.grey.shade300,
-                showLoader: showLoader,
+                      : () async{
+                          Provider.of<ShowLoader>(context,listen: false).startLoader();
+
+                         if( await editTag(tagName: tagName.text, tagID: widget.tagID!, iconID: Provider.of<IconProvider>(context,listen: false).selectedIconId ?? widget.iconID!, description: descr.text) && (mounted))
+                           {
+                             Provider.of<ShowLoader>(context,listen: false).stopLoader();
+                           }
+                        },
+                  txt: widget.addTag ? 'Create Tag' : 'Update',
+                  bgColor: widget.addTag ? Colors.black : Colors.grey.shade800,
+                  txtColor: widget.addTag ? Colors.white : Colors.grey.shade300,
+                  showLoader: Provider.of<ShowLoader>(context).showLoader,
               ),
               const SpacedBoxBig(),
               widget.addTag
@@ -230,11 +319,16 @@ class _EditTagsState extends State<EditTags> {
                           border: Border.all(color: Colors.red.shade300),
                           borderRadius: BorderRadius.circular(30)),
                       child: ContButton(
-                        func: () {},
+                        func: () async{
+                          Provider.of<ShowLoader>(context,listen: false).startLoader();
+                          await deleteTag(widget.tagID!);
+                          if(!mounted)return;
+                          Provider.of<ShowLoader>(context,listen: false).stopLoader();
+                        },
                         txt: 'Delete',
                         bgColor: Colors.white,
                         txtColor: Colors.red,
-                        showLoader: false,
+                        showLoader: false
                       ),
                     ),
               const Spacer(),
@@ -245,6 +339,7 @@ class _EditTagsState extends State<EditTags> {
                           horizontal: screenWidth * 0.027),
                       child: Text(
                         "keep all your important links and texts tagged in one place, ready whenever you need them. ",
+                        textAlign: TextAlign.center,
                         style: textStyle(screenHeight * 0.017, FontWeight.w500,
                             Colors.black),
                       ),

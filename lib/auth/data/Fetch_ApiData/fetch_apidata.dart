@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-String _token = '';
-String get returnIfToken =>_token;
+String? _token;
+
 
 Future<bool> resetPassword(String mobile, String password) async {
   final userID = await http.put(
@@ -12,45 +12,45 @@ Future<bool> resetPassword(String mobile, String password) async {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
       },
-      body: jsonEncode({"mobile": mobile, "password": password}));
+      body: jsonEncode({"mobile": mobile, "password": password},),);
   if (userID.statusCode == 200) {
     return true;
   } else {
     return false;
   }
 }
-String? _mobile;
-String? _reg;
 
-String? get userId => _mobile;
-String? get registeredDate => _reg;
+late String _reg;
+late String _mobile;
+
+String get userId => _mobile;
+String get regDate => _reg;
+
 
 Future<void> fetchUserData() async {
+  final pref = await SharedPreferences.getInstance();
   final fetchData = await http.get(Uri.parse('https://tag-book-1.onrender.com/api/v1/auth/getUserProfile'),
-      headers: {
-        'Authorization': 'Bearer $returnIfToken',
-        'Content-Type': 'application/json',
-      },
+    headers: {
+      'Authorization': 'Bearer ${pref.getString("authToken")}',
+      'Content-Type': 'application/json',
+    },
   );
   if (fetchData.statusCode == 200) {
-
-    final Map<String,dynamic> data = json.decode(fetchData.body);
-    if(data['code'] == 200 && data['status'] == 'Success')
-      {
-        _mobile = data['data']['mobile'].toString();
-        _reg = data['data']['createdAt'];
-      }
-    else
-      {
-          throw Exception('Failed to load UserData');
-      }
+    final Map<String, dynamic> data = json.decode(fetchData.body);
+    if (data['code'] == 200 && data['status'] == 'Success') {
+      _mobile = data['data']['mobile'].toString();
+      pref.setString('userID', _mobile);
+      _reg = data['data']['createdAt'].toString();
+      pref.setString('regDate' , _reg);
+    } else {
+      throw Exception('Failed to load UserData');
+    }
   } else {
     throw Exception('Failed to load UserData');
   }
 }
 
 Future<bool> checkUserData(String mobile) async {
-
   try {
     final userID = await http.post(
       Uri.parse('https://tag-book-1.onrender.com/api/v1/auth/verifyUser'),
@@ -81,26 +81,27 @@ List<String> terms = _description!.split(',,');
 
 String get getSubtitle => _subtitle!;
 
-Future<void> getPolicies()async {
-    final response = await http.get(Uri.parse('https://tag-book-1.onrender.com/api/v1/public/getPolicies?type=termsAndConditions'),
-    headers: {"Content-Type":"application/json"},);
+Future<void> getPolicies({required String type}) async {
+  final response = await http.get(
+    Uri.parse('https://tag-book-1.onrender.com/api/v1/public/getPolicies?type=$type'),
+    headers: {"Content-Type": "application/json"},
+  );
+  print(response.body);
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    final data = responseBody['data'];
 
-
-        final Map<String,dynamic> responseBody = jsonDecode(response.body);
-        List<dynamic>? dataList = responseBody['data'];
-        if(dataList!.isNotEmpty)
-          {
-             _subtitle = dataList[0]['subTitle'];
-             _description = dataList[0]['descriptions'];
-          }
-
-
-    else
-      {
-        throw Exception("Couldn't find any policies");
-      }
-
+    if (data != null) {
+      _subtitle = data['subTitle'];
+      _description = data['descriptions'];
+    } else {
+      throw Exception("No policies found in the response.");
+    }
+  } else {
+    throw Exception("Failed to load policies: ${response.statusCode}");
+  }
 }
+
 
 Future<bool> logInSignup(String mobile, String password, String type) async {
   // Define the endpoint URL
@@ -125,7 +126,8 @@ Future<bool> logInSignup(String mobile, String password, String type) async {
       if (type == "login") {
         _token = jsonDecode(response.body)["token"];
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', _token);
+        await prefs.setString('authToken', _token!);
+        print(_token);
       } // Extract token from response
       // Store token using SharedPreferences or similar method for future API requests
       return true; // Return true to indicate success

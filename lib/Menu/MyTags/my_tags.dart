@@ -2,20 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:tag_book/Menu/MyTags/EditTags/edit_tags.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tagicons.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import '../../common/styles/styles.dart';
-import 'EditTags/edit_tags.dart';
-
 
 class MyTags extends StatefulWidget {
-  const MyTags({super.key});
+  const MyTags({super.key, required this.allTags});
+  final List<FetchTags> allTags;
 
   @override
   State<MyTags> createState() => _MyTagsState();
 }
 
 class _MyTagsState extends State<MyTags> {
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
@@ -40,7 +41,7 @@ class _MyTagsState extends State<MyTags> {
                       Text(
                         'My Tags',
                         style: TextStyle(
-                          fontSize: screenHeight*0.037,
+                          fontSize: screenHeight * 0.037,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                           height: 0,
@@ -49,9 +50,15 @@ class _MyTagsState extends State<MyTags> {
                       Padding(
                         padding: EdgeInsets.symmetric(
                             vertical: screenHeight * 0.005),
-                        child: Text('manage your tags',
-                            softWrap: true,
-                            style: textStyle(screenHeight*0.017, FontWeight.w500, Colors.grey)),
+                        child: Text(
+                          'manage your tags',
+                          softWrap: true,
+                          style: textStyle(
+                            screenHeight * 0.017,
+                            FontWeight.w500,
+                            Colors.grey,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -76,14 +83,48 @@ class _MyTagsState extends State<MyTags> {
                 ],
               ),
               const SpacedBoxLarge(),
-              SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/workout.svg', title: 'workout', func: ()async{
-                Navigator.push(context, MaterialPageRoute(builder: (context){
-                  return ChangeNotifierProvider(create: (context)=> IconProvider(),child: const EditTags(addTag: false,),);
-                },),);
-              },),
-              SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/youtube.svg', title: 'youtube motivation', func: null,),
-              SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/snapchat.svg', title: 'snap stories', func: null,),
-              SelectedTags(screenHeight: screenHeight, screenWidth: screenWidth, image: 'assets/images/cooking.svg', title: 'cooking', func: null,),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.allTags.length,
+                  itemBuilder: (context, index) => SelectedTags(
+                    screenHeight: screenHeight,
+                    screenWidth: screenWidth,
+                    tagID: widget.allTags[index].tagID,
+                    image: widget.allTags[index].iconImage,
+                    title: widget.allTags[index].tagName,
+                    func: () async {
+                      List<FetchIcons> iconList = await fetchAllIconData();
+                      if (!mounted) return;
+                      Provider.of<IconProvider>(context,listen: false).selectTag(widget.allTags[index].iconID);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MultiProvider(
+                            providers: [
+                              ChangeNotifierProvider(
+                                create: (BuildContext context) =>
+                                    IconProvider(),
+                              ),
+                              ChangeNotifierProvider(
+                                create: (BuildContext context) =>
+                                    TagEditProvider(),
+                              ),
+                            ],
+                            child: EditTags(
+                              addTag: false,
+                              tagID: widget.allTags[index].tagID,
+                              iconID: widget.allTags[index].iconID,
+                              tagDescr: widget.allTags[index].descr,
+                              tagName: widget.allTags[index].tagName,
+                              iconLists: iconList,
+                            ),
+                          ),
+                        ),
+                      );
+                    }, isOnline: true,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -100,48 +141,62 @@ class SelectedTags extends StatelessWidget {
     required this.image,
     required this.title,
     required this.func,
+    required this.tagID,
+    required this.isOnline,
   });
 
   final double screenHeight;
   final double screenWidth;
+  final String tagID;
   final String image;
   final String title;
   final Function()? func;
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
+      padding: EdgeInsets.only(top: screenHeight * 0.008),
       child: GestureDetector(
         onTap: func,
         child: Container(
-          height:screenHeight*0.065,
+          height: screenHeight * 0.065,
           width: screenWidth,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.grey.shade300)
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.grey.shade300),
           ),
           child: Padding(
-            padding: EdgeInsets.only(right: screenWidth*0.05,
-            left: screenWidth*0.02),
-            child:  Row(
+            padding: EdgeInsets.only(
+                right: screenWidth * 0.05, left: screenWidth * 0.02),
+            child: Row(
               children: [
                 Container(
-                  height:screenHeight*0.09,
-                  width: screenWidth*0.09,
+                  height: screenHeight * 0.09,
+                  width: screenWidth * 0.09,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
                     shape: BoxShape.circle,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: SvgPicture.asset(image,fit: BoxFit.contain),
+                    child: isOnline?SvgPicture.network(image, fit: BoxFit.contain):SvgPicture.asset(image,fit: BoxFit.contain,),
                   ),
                 ),
-                const SizedBox(width: 15,),
-                Text(title,style: textStyle(screenHeight*0.016, FontWeight.w900, Colors.grey.shade500),),
+                const SizedBox(
+                  width: 15,
+                ),
+                Text(
+                  title,
+                  style: textStyle(screenHeight * 0.016, FontWeight.w900,
+                      Colors.grey.shade500),
+                ),
                 const Spacer(),
-                Icon(Icons.arrow_forward_ios_outlined,color: Colors.grey.shade400,size: 20,),
+                Icon(
+                  Icons.arrow_forward_ios_outlined,
+                  color: Colors.grey.shade400,
+                  size: 20,
+                ),
               ],
             ),
           ),

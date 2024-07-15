@@ -16,7 +16,8 @@ class CustomTextField extends StatelessWidget {
     required this.controller,
     required this.keyboardType,
     required this.validField,
-    required this.onPressed, required this.visibility,
+    required this.onPressed,
+    required this.visibility,
 
   });
   final String text;

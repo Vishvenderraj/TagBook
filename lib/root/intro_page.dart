@@ -2,8 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tagicons.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import 'package:tag_book/Menu/Profile/my_profile.dart';
+import 'package:tag_book/my_tagbook.dart';
 import '../Menu/MyTags/EditTags/edit_tags.dart';
 import '../Menu/menu.dart';
 import '../auth/data/Fetch_ApiData/fetch_apidata.dart';
@@ -18,11 +22,9 @@ class IntroPage extends StatefulWidget {
 }
 
 class _IntroPageState extends State<IntroPage> {
-
   @override
   void initState() {
     fetchUserData();
-
     super.initState();
   }
 
@@ -33,7 +35,7 @@ class _IntroPageState extends State<IntroPage> {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         body: SafeArea(
           child: Column(
@@ -128,14 +130,19 @@ class _IntroPageState extends State<IntroPage> {
                         ),
                         const SpacedBox(),
                         GestureDetector(
-                          onTap: () {
+                          onTap: () async {
+                            final pref = await SharedPreferences.getInstance();
+                            if (!mounted) return;
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChangeNotifierProvider(
-                                    create: (BuildContext context) =>
-                                        Tapped(true),
-                                    child: const MyProfile(),
+                                  create: (BuildContext context) =>
+                                      Tapped(true),
+                                  child: MyProfile(
+                                    userID: '${pref.getString("authToken")}',
+                                    regDates: '${pref.getString("regDate")}',
+                                  ),
                                 ),
                               ),
                             );
@@ -149,15 +156,17 @@ class _IntroPageState extends State<IntroPage> {
                         const SpacedBoxLarge(),
                         Text(
                           "My Tags",
-                          style: textStyle(
-                              screenHeight * 0.03, FontWeight.w800, Colors.black),
+                          style: textStyle(screenHeight * 0.03, FontWeight.w800,
+                              Colors.black),
                         ),
                         const SpacedBoxBig(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             GestureDetector(
-                              onTap: () {
+                              onTap: () async {
+                                List<FetchIcons> iconList = await fetchAllIconData();
+                                if (iconList.isEmpty && !mounted) return;
                                 showModalBottomSheet(
                                   enableDrag: false,
                                   isScrollControlled: true,
@@ -168,22 +177,40 @@ class _IntroPageState extends State<IntroPage> {
                                     minChildSize: 0.5,
                                     maxChildSize: 1.0,
                                     expand: false,
-                                    builder: (BuildContext context, ScrollController scrollController)=> ListView(
-                                      controller: scrollController,
-                                      children: [
-                                        Container(
+                                    builder: (BuildContext context, ScrollController scrollController) =>
+                                        ListView(
+                                            controller: scrollController,
+                                            children: [
+                                          Container(
                                             height: screenHeight,
                                             width: screenWidth,
                                             decoration: const BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20))
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(20),
+                                                topRight: Radius.circular(20),
+                                              ),
                                             ),
-                                            child: ChangeNotifierProvider(create:(BuildContext context)=>IconProvider(),child: Padding(
-                                              padding: EdgeInsets.symmetric(horizontal: screenWidth*0.01,vertical: screenHeight*0.028),
-                                              child: const EditTags(addTag: true),
-                                            ),),)
-                                      ]
-                                    ),
+                                            child: MultiProvider(
+                                              providers: [
+                                                ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),),
+                                                ChangeNotifierProvider(create: (BuildContext context) => TagEditProvider(),),
+                                              ],
+                                              child: Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal:
+                                                      screenWidth * 0.01,
+                                                  vertical:
+                                                      screenHeight * 0.028,
+                                                ),
+                                                child: EditTags(
+                                                  addTag: true,
+                                                  iconLists: iconList,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ]),
                                   ),
                                 );
                               },
@@ -193,7 +220,8 @@ class _IntroPageState extends State<IntroPage> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: CupertinoColors.white,
-                                  border: Border.all(color: Colors.grey.shade200),
+                                  border:
+                                      Border.all(color: Colors.grey.shade200),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.grey.shade400,
@@ -211,7 +239,8 @@ class _IntroPageState extends State<IntroPage> {
                             ),
                             Expanded(
                               child: Padding(
-                                padding: EdgeInsets.only(left: screenWidth * 0.1),
+                                padding:
+                                    EdgeInsets.only(left: screenWidth * 0.1),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
@@ -246,7 +275,12 @@ class _IntroPageState extends State<IntroPage> {
               const SpacedBoxBig(),
               BottomPageButton(
                 text: "Add to Tag Book",
-                func: () {},
+                func: () async{
+                  if(!mounted)return;
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(create: (BuildContext context) => MultiTapped(),
+                    child: const MyTagBook()),
+                  ),);
+                },
                 bgColor: Colors.black,
                 textStyle: textStyle(20, FontWeight.w700, Colors.white),
               )
@@ -257,6 +291,3 @@ class _IntroPageState extends State<IntroPage> {
     );
   }
 }
-
-
-

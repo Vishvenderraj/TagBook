@@ -2,8 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/ForgotPassword/confirm_oldpassword.dart';
 import 'package:tag_book/Menu/MyTags/my_tags.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
+import 'package:tag_book/auth/data/Fetch_ApiData/fetch_apidata.dart';
 import 'package:tag_book/policies/terms&conditions/terms_n_conditions.dart';
 import '../auth/func/validate_authdata/validate_authdata.dart';
 import '../common/styles/styles.dart';
@@ -11,9 +15,14 @@ import '../common/widgets/custom_fields_and_button.dart';
 import '../common/widgets/form_page.dart';
 import 'Profile/my_profile.dart';
 
-class Menu extends StatelessWidget {
+class Menu extends StatefulWidget {
   const Menu({super.key});
 
+  @override
+  State<Menu> createState() => _MenuState();
+}
+
+class _MenuState extends State<Menu> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
@@ -82,13 +91,15 @@ class Menu extends StatelessWidget {
                 title: 'My Profile',
                 bgColor: Colors.blue,
                 image: 'assets/images/menu1.svg',
-                onTap: () {
+                onTap: () async{
+                  final pref = await SharedPreferences.getInstance();
+                  if(!mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ChangeNotifierProvider(
                         create: (context) => Tapped(false),
-                        child: const MyProfile(),
+                        child:  MyProfile(userID: userId, regDates: regDate,),
                       ),
                     ),
                   );
@@ -128,7 +139,7 @@ class Menu extends StatelessWidget {
                                   ),
                                 ),
                                 title: Text(
-                                  'Security',
+                                      'Security',
                                   style: textStyle(screenHeight * 0.018,
                                       FontWeight.bold, Colors.black),
                                 ),
@@ -176,36 +187,49 @@ class Menu extends StatelessWidget {
                                     const Divider(
                                       thickness: 0.5,
                                     ),
-                                    ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: Colors.green,
-                                          child: SvgPicture.asset(
-                                              'assets/images/security.svg',
+                                    GestureDetector(
+                                      onTap: ()async{
+                                        await getPolicies(type:'privacyAndPolicy');
+                                        if(!mounted) return;
+                                        getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),):null;
+                                      },
+                                      child: ListTile(
+                                        selectedTileColor: Colors.transparent,
+                                         hoverColor: Colors.transparent,
+                                          splashColor: Colors.transparent,
+                                          leading: CircleAvatar(
+                                            backgroundColor: Colors.green,
+                                            child: SvgPicture.asset(
+                                                'assets/images/security.svg',
+                                            ),
                                           ),
-                                        ),
-                                        title: Text(
-                                          'Privacy Policies',
-                                          style: textStyle(screenHeight * 0.018,
-                                              FontWeight.bold, Colors.black),
-                                        ),onTap: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),);
-                                    },),
+                                          title: Text(
+                                            'Privacy Policies',
+                                            style: textStyle(screenHeight * 0.018,
+                                                FontWeight.bold, Colors.black),
+                                          ),),
+                                    ),
                                     const Divider(
                                       thickness: 0.5,
                                     ),
-                                    ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: Colors.green,
-                                          child: SvgPicture.asset(
-                                              'assets/images/security.svg'),
-                                        ),
-                                        title: Text(
-                                          'Terms and Conditions',
-                                          style: textStyle(screenHeight * 0.018,
-                                              FontWeight.bold, Colors.black),
-                                        ),onTap: (){
-                                          Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),);
-                                    },),
+                                    GestureDetector(
+                                      onTap: ()async{
+                                        await getPolicies(type:'termsAndConditions');
+                                        if(!mounted) return;
+                                        getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),):null;
+                                      },
+                                      child: ListTile(
+                                          leading: CircleAvatar(
+                                            backgroundColor: Colors.green,
+                                            child: SvgPicture.asset(
+                                                'assets/images/security.svg'),
+                                          ),
+                                          title: Text(
+                                            'Terms and Conditions',
+                                            style: textStyle(screenHeight * 0.018,
+                                                FontWeight.bold, Colors.black),
+                                          ),),
+                                    ),
                                     const SpacedBox(),
                                   ],
                                 ),
@@ -222,11 +246,14 @@ class Menu extends StatelessWidget {
                       title: 'My Tags',
                       bgColor: Colors.yellow,
                       image: 'assets/images/menu2.svg',
-                      onTap: () {
+                      onTap: () async{
+                        tags =  await getAllTag();
+                        if(!mounted) return;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MyTags(),
+                            builder: (context) => ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),
+                            child: MyTags(allTags: tags,)),
                           ),
                         );
                       },
@@ -247,14 +274,13 @@ class Menu extends StatelessWidget {
                             builder: (context) => const FeedBack(
                                 title: 'Report Bug',
                                 subtitle:
-                                    'we appreciate your support: Thank you'),
+                                    'we appreciate your support: Thank you', type: 'reportBugs',),
                           ),
                         );
                       },
                       iconData: Icons.arrow_forward_ios,
                       needInnerCircle: false,
-                    )
-                  : const SizedBox(),
+                    ) : const SizedBox(),
               const SpacedBoxBig(),
               ContButton(
                 showLoader: false,
@@ -267,7 +293,13 @@ class Menu extends StatelessWidget {
                 txtColor: CupertinoColors.white,
               ),
               TextButton(
-                onPressed: () {},
+                style: TextButton.styleFrom(
+                  disabledForegroundColor: CupertinoColors.white,
+                  foregroundColor: CupertinoColors.white
+                ),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const FeedBack(title: 'Request Features', subtitle: 'we appreciate your ideas and suggestions', type: 'requestFeatures',),),);
+                },
                 child: Text(
                   "request features",
                   style: textStyle(screenHeight * 0.015, FontWeight.w700,

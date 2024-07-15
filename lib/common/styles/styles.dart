@@ -58,6 +58,21 @@ class Tapped with ChangeNotifier{
     isTapped = !isTapped;
     notifyListeners();
   }
+}class MultiTapped with ChangeNotifier{
+  bool isTapped = false;
+  bool isTapped1 = false;
+  bool isTapped2 = false;
+
+  void tapped(){
+    isTapped = !isTapped;
+    notifyListeners();
+  }void tapped1(){
+    isTapped1 = !isTapped1;
+    notifyListeners();
+  }void tapped2(){
+    isTapped2 = !isTapped2;
+    notifyListeners();
+  }
 }
 
 class ResponsiveTexts extends StatelessWidget {

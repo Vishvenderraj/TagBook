@@ -47,10 +47,6 @@ class _LogInState extends State<LogIn> {
       body: SafeArea(
         child: Column(
           children: [
-            GestureDetector(
-              onTap: (){Navigator.push(context,MaterialPageRoute(builder: (context)=>const IntroPage(),),);},
-              child: Text('CLICK ON ME',style: TextStyle(color: Colors.red),),
-            ),
             Padding(
               padding: EdgeInsets.only(
                   top: screenHeight * 0.03,
