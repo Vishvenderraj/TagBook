@@ -31,7 +31,7 @@ Future<void> fetchUserData() async {
   final pref = await SharedPreferences.getInstance();
   final fetchData = await http.get(Uri.parse('https://tag-book-1.onrender.com/api/v1/auth/getUserProfile'),
     headers: {
-      'Authorization': 'Bearer ${pref.getString("authToken")}',
+      'Authorization': 'Bearer ${pref.getString('authToken')}',
       'Content-Type': 'application/json',
     },
   );

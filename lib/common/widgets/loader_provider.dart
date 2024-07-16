@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 
 class ShowLoader with ChangeNotifier{
-  bool showLoader = false;
+  bool showLoader;
+
+  ShowLoader(this.showLoader);
   void startLoader()
   {
     showLoader = true;

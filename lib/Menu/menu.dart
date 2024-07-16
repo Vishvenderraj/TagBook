@@ -99,7 +99,7 @@ class _MenuState extends State<Menu> {
                     MaterialPageRoute(
                       builder: (context) => ChangeNotifierProvider(
                         create: (context) => Tapped(false),
-                        child:  MyProfile(userID: userId, regDates: regDate,),
+                        child:  MyProfile(userID: '${pref.getString("userID")}', regDates: '${pref.getString("regDate")}',),
                       ),
                     ),
                   );
@@ -247,13 +247,16 @@ class _MenuState extends State<Menu> {
                       bgColor: Colors.yellow,
                       image: 'assets/images/menu2.svg',
                       onTap: () async{
-                        tags =  await getAllTag();
+                        if(tags.isEmpty)
+                        {
+                            tags =  await getAllTag();
+                        }
                         if(!mounted) return;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),
-                            child: MyTags(allTags: tags,)),
+                            child: MyTags(allTags: tags,),),
                           ),
                         );
                       },

@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/auth/screen/signup/sign_up.dart';
 import '../../../ForgotPassword/forgot_password.dart';
 import '../../../common/styles/styles.dart';
@@ -174,20 +176,11 @@ class _LogInState extends State<LogIn> {
                        if (await logInSignup(mobileEditingController.text, passwordEditingController.text, "login",)
                           &&
                           (mounted) ) {
+                           await fetchUserData();
+                         if(!mounted)return;
                         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
                             builder: (context) => const IntroPage(),
-                      ),
-                       /* phoneVerification(mobileEditingController.text, (String verificationId, int? resendToken) {
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) => OTPage(
-                                  fromChangePass: false,
-                                  userID: mobileEditingController.text,
-                                  verID: verificationId, fromSignUp: false,
-                                ),
-                              ),
-                            );
-                          },*/
-                            (route)=>false);
+                      ),(route)=>false);
                       }
                       else
                       {

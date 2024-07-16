@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/ForgotPassword/reset_password.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
@@ -69,6 +70,8 @@ class _OTPageState extends State<OTPage> {
   Future<void> signInUser() async {
     if (await logInSignup(widget.userID, widget.userPassKey, "signup") &&
         (mounted)) {
+        await fetchUserData();
+      if(!mounted)return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(

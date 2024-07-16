@@ -7,20 +7,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 List<FetchTags>tags = [];
 List<FetchPosts>posts = [];
 
-
 //Post API
 class FetchPosts{
   final String content;
-  final String iconImage;
-  FetchPosts({ required this.content, required this.iconImage});
+  final String image1;
+  final String image2;
+  final String image3;
+  final String dateCreated;
+  FetchPosts({ required this.content, required this.image1, required this.image2, required this.image3, required this.dateCreated,});
   factory FetchPosts.fromJson(Map<String, dynamic> json)
   {
     List<dynamic> tagIdList = json['tagId'] ?? [];
-    String iconImage = tagIdList.isNotEmpty ? tagIdList[0]['icon']['iconImage'] : '';
+    String image1 = tagIdList.isNotEmpty ? tagIdList[0]['icon']['iconImage'] ?? '' : '';
+    String image2 = tagIdList.length > 1 ? tagIdList[1]['icon']['iconImage'] ?? '' : '';
+    String image3 = tagIdList.length > 2 ? tagIdList[2]['icon']['iconImage'] ?? '' : '';
+
 
     return FetchPosts(
       content: json['content'],
-      iconImage: iconImage,
+      image1: image1,
+      image2: image2,
+      image3: image3,
+      dateCreated: json['createdAt'],
     );
   }
 }
@@ -42,8 +50,10 @@ Future<bool> createPost(String content, List<String> listoftags) async{
         "tagId": listoftags,
       }),
     );
+    print('${pref.getString('authToken')}');
     print(createPost.statusCode);
-    if(createPost.statusCode <= 201 && jsonDecode(createPost.body)['code'] <= 201)
+    print(jsonDecode(createPost.body)['code']);
+    if(jsonDecode(createPost.body)['code'] == 201)
       {
         print("ok");
         return true;
@@ -106,6 +116,7 @@ class FetchTags {
   }
 }
 
+
 Future<List<FetchTags>> getAllTag() async {
   final pref = await SharedPreferences.getInstance();
   String url = 'https://tag-book-1.onrender.com/api/v1/common/getAllTags';
@@ -113,14 +124,15 @@ Future<List<FetchTags>> getAllTag() async {
   final getAllTags = await http.get(
     Uri.parse(url),
     headers: {
-      "Authorization": "Bearer ${pref.getString('authToken')}",
-      "Content-type": "application/json"
+      'Authorization': 'Bearer ${pref.getString('authToken')}',
+      'Content-Type': 'application/json',
     },
   );
 
   if (getAllTags.statusCode == 200) {
 
     List<dynamic> data = json.decode(getAllTags.body)['data'];
+    tags = data.map((tag) => FetchTags.fromJson(tag)).toList();
     return data.map((tag) => FetchTags.fromJson(tag)).toList();
   } else {
     throw Exception("none works");

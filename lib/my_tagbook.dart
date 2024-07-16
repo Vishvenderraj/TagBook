@@ -2,12 +2,15 @@ import 'package:any_link_preview/any_link_preview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/common/styles/styles.dart';
 import 'package:tag_book/common/widgets/custom_fields_and_button.dart';
 import 'package:tag_book/provider_tagbook.dart';
+
+import 'filter_tag.dart';
 
 List<String> listsOfTags = [];
 
@@ -19,34 +22,22 @@ class MyTagBook extends StatefulWidget {
 }
 
 class _MyTagBookState extends State<MyTagBook> {
-  late Future<List<FetchPosts>> futurePosts;
   TextEditingController postTextEditingController = TextEditingController();
 
   String ur1 = '';
   String message = '';
   int count = 0;
 
-/*  void _getMetadata(String url) async {
-    bool isValid = _getUrlValid(url);
-    if (isValid) {
-      Metadata? _metadata = await AnyLinkPreview.getMetadata(
-        link: url,
-        cache: const Duration(days: 7),
-      );
-    } else {
-      debugPrint("URL is not valid");
-    }
-  }*/
 
-  bool _getUrlValid(String url) {
-    bool isUrlValid = AnyLinkPreview.isValidLink(
-      url,
-      protocols: ['http', 'https'],
-      hostWhitelist: ['https://youtube.com/'],
-      hostBlacklist: ['https://facebook.com/'],
-    );
-    return isUrlValid;
-  }
+    bool _getUrlValid(String url) {
+      bool isUrlValid = AnyLinkPreview.isValidLink(
+       url,
+        protocols: ['http', 'https'],
+        hostWhitelist: ['https://youtube.com/'],
+        hostBlacklist: ['https://facebook.com/'],
+      );
+      return isUrlValid;
+    }
 
   @override
   void dispose() {
@@ -57,24 +48,21 @@ class _MyTagBookState extends State<MyTagBook> {
   void validateContent(String string) {
     final text = string.split(RegExp(r'[ \n]'));
     final link = text.isNotEmpty ? text.first : '';
-    if (_getUrlValid(link)) {
+
+    if(_getUrlValid(link)) {
+
       setState(() {
         ur1 = link;
         message = string.replaceAll(link, '').trim();
+
       });
     } else {
       setState(() {
-        ur1 = '';
         message = string;
       });
     }
   }
 
-  @override
-  void initState() {
-    futurePosts = getAllPosts();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,63 +72,172 @@ class _MyTagBookState extends State<MyTagBook> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        toolbarHeight: screenHeight * 0.09,
+        toolbarHeight: Provider.of<Tapped>(context).isTapped?screenHeight * 0.2:screenHeight * 0.1,
         elevation: 3,
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         shadowColor: Colors.grey.shade200,
         flexibleSpace: SafeArea(
           child: Center(
-            child: Padding(
-              padding: EdgeInsets.only(
-                  left: screenWidth * 0.05,
-                  top: screenHeight * 0.04,
-                  bottom: screenHeight * 0.01),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'My Tag Book',
-                    style: textStyle(
-                        screenHeight * 0.035, FontWeight.w800, Colors.black),
-                  ),
-                  SizedBox(
-                    width: screenWidth * 0.2,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: SvgPicture.asset('assets/images/searchButton.svg'),
-                  ),
-                  SizedBox(
-                    width: screenWidth * 0.0225,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: SvgPicture.asset('assets/images/tags.svg'),
-                  ),
-                  SizedBox(
-                    width: screenWidth * 0.0225,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Material(
-                      elevation: 5,
-                      shape: CircleBorder(),
-                      child: CircleAvatar(
-                        radius: 10,
-                        backgroundColor: Colors.black,
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 13,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+            padding: EdgeInsets.only(
+            left: screenWidth * 0.05,
+                top: screenHeight * 0.04,
+                bottom: screenHeight * 0.01,
+            ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'My Tag Book',
+                        style: textStyle(
+                            screenHeight * 0.035, FontWeight.w800, Colors.black),
+                      ),
+                      SizedBox(
+                        width: screenWidth * 0.2,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Provider.of<Tapped>(context,listen: false).tapped();
+                        },
+                        child: SvgPicture.asset('assets/images/searchButton.svg'),
+                      ),
+                      SizedBox(
+                        width: screenWidth * 0.0225,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                              enableDrag: false,
+                              isScrollControlled: false,
+                              isDismissible: true,
+                              backgroundColor: Colors.white,
+                              context: context,
+                              builder: (context)=>
+                          GestureDetector(
+                            onTap: (){
+                              Navigator.pop(context);
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=>const FilterTag(),),);
+                              },
+                            child: Container(
+                              height: screenHeight/2,
+                              width: screenWidth,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child:Padding(
+                                padding: EdgeInsets.all(screenHeight*0.01),
+                                child: const FilterTag(),
+                              ),
+                            ),
+                          )
+                          );
+                        },
+                        child: SvgPicture.asset('assets/images/tags.svg'),
+                      ),
+                      SizedBox(
+                        width: screenWidth * 0.0225,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Material(
+                          elevation: 5,
+                          shape: CircleBorder(),
+                          child: CircleAvatar(
+                            radius: 10,
+                            backgroundColor: Colors.black,
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 13,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Provider.of<Tapped>(context).isTapped?Divider(
+                  color: Colors.grey.shade300,
+                ): const SizedBox(),
+                Provider.of<Tapped>(context).isTapped?Padding(
+                  padding:EdgeInsets.only(
+                    top: screenHeight * 0.0125,
+                      left: screenWidth * 0.05,
+
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: Colors.grey.shade300)
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: screenWidth*0.08),
+                            child: TextField(
+                                maxLines: null,
+                                autofocus: false,
+                                autocorrect: false,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                controller: postTextEditingController,
+                                onChanged: (string) {
+                                  validateContent(string);
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'Search within all notes',
+                                  hintStyle: textStyle(screenHeight * 0.022,
+                                      FontWeight.w400, Colors.grey.shade400),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 1.2),
+                                  ),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 1.2),
+                                  ),
+                                  errorBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 1.2),
+                                  ),
+                                )
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: screenWidth*0.02,),
+                      Expanded(
+                        flex: 1,
+                        child:  Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(CupertinoIcons.chevron_up,color: Colors.grey,),
+                            SizedBox(width: screenWidth*0.02,),
+                            const Icon(CupertinoIcons.chevron_down,color: Colors.grey,),
+                            SizedBox(width: screenWidth*0.02,),
+                            Container(color: Colors.black,width: 2,height: 25,),
+                            SizedBox(width: screenWidth*0.02,),
+                            GestureDetector(
+                                onTap: (){
+                                  Provider.of<Tapped>(context).tapped();
+                                },
+                                child: const Icon(Icons.close,color: Colors.black,),)
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ): const SizedBox()
+              ],
             ),
           ),
         ),
@@ -149,52 +246,44 @@ class _MyTagBookState extends State<MyTagBook> {
         child: Column(
           children: [
             Expanded(
-              child: FutureBuilder<List<FetchPosts>>(
-                future: futurePosts,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No posts found'));
-                  } else {
-                    return ListView.builder(
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) =>
-                          ChangeNotifierProvider(
-                            create: (BuildContext context) {
-                              return TagBookProvider();
-                            },
-                            child: Posts(
-                              controller: postTextEditingController,
-                              url: posts[index].content
-                                  .split(RegExp(r'[ \n]'))
-                                  .first,
-                              message: posts[index].content.replaceAll(
-                                  posts[index].content
-                                      .split(RegExp(r'[ \n]'))
-                                      .first, '').trim(),
-                            ),
-                          ),
-                    );
-                  }
-                }),
+              child:ListView.builder(
+                itemCount: filterOn?filteredPosts.length:posts.length,
+                itemBuilder: (context, index) {
+                  bool checkForValidUrl = _getUrlValid(posts[index].content.split(RegExp(r'[ \n]')).first);
+                     return Posts(
+                       controller: postTextEditingController,
+                       url: checkForValidUrl? (
+                           filterOn?
+                           filteredPosts[index].content.split(RegExp(r'[ \n]')).first:
+                           posts[index].content.split(RegExp(r'[ \n]')).first
+                       ):'',
+                       message: checkForValidUrl?(
+                           filterOn?
+                           filteredPosts[index].content.replaceAll(posts[index].content.split(RegExp(r'[ \n]')).first, '').trim():
+                           posts[index].content.replaceAll(posts[index].content.split(RegExp(r'[ \n]')).first, '').trim()
+                       ):posts[index].content,
+                       image1:   filterOn?filteredPosts[index].image1:posts[index].image1,
+                       image2:   filterOn?filteredPosts[index].image2:posts[index].image2,
+                       image3:   filterOn?filteredPosts[index].image3:posts[index].image3,
+                       dateCreated:  filterOn?filteredPosts[index].dateCreated:posts[index].dateCreated,
+                     );
+                },
+              ),
             ),
             Container(
               height:
-                  ur1.isNotEmpty ? screenHeight * 0.22 : screenHeight * 0.07,
+              ur1.isNotEmpty ? screenHeight * 0.22 : screenHeight * 0.07,
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+                padding: const EdgeInsets.all(4.0),
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      if (ur1.isNotEmpty)
+                      ur1.isNotEmpty?
                         Padding(
                           padding: EdgeInsets.symmetric(
                               vertical: screenHeight * 0.01),
@@ -202,10 +291,10 @@ class _MyTagBookState extends State<MyTagBook> {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 border:
-                                    Border.all(color: Colors.grey.shade300)),
+                                Border.all(color: Colors.grey.shade300)),
                             child: AnyLinkPreview(
                               displayDirection:
-                                  UIDirection.uiDirectionHorizontal,
+                              UIDirection.uiDirectionHorizontal,
                               backgroundColor: Colors.white,
                               borderRadius: 20,
                               removeElevation: true,
@@ -214,94 +303,75 @@ class _MyTagBookState extends State<MyTagBook> {
                               cache: const Duration(hours: 1),
                             ),
                           ),
-                        ),
+                        ):const SizedBox(),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              showModalBottomSheet(
-                                enableDrag: false,
-                                isScrollControlled: true,
-                                isDismissible: true,
-                                context: context,
-                                builder: (BuildContext context) =>
-                                    MultiProvider(
-                                  providers: [
-                                    ChangeNotifierProvider(
-                                      create: (BuildContext context) =>
-                                          MultiTapped(),
-                                    ),
-                                    ChangeNotifierProvider(
-                                      create: (BuildContext context) =>
-                                          TagBookProvider(),
-                                    ),
-                                  ],
-                                  child: DraggableScrollableSheet(
-                                    initialChildSize: 0.5,
-                                    minChildSize: 0.5,
-                                    maxChildSize: 1.0,
-                                    expand: false,
-                                    builder: (BuildContext context,
-                                            ScrollController
-                                                scrollController) =>
-                                        ListView(
-                                            controller: scrollController,
-                                            children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.white,surfaceTintColor: Colors.white,splashFactory: NoSplash.splashFactory,
+                              foregroundColor: CupertinoColors.white,elevation: 0),
+                        onPressed: () {
+                          final tagBookProvider = Provider.of<TagBookProvider>(context, listen: false);
+                          showModalBottomSheet(
+                            enableDrag: false,
+                            isScrollControlled: true,
+                            isDismissible: true,
+                            backgroundColor: Colors.white,
+                            context: context,
+                            builder: (BuildContext context) => DraggableScrollableSheet(
+                              initialChildSize: 0.5,
+                              minChildSize: 0.5,
+                              maxChildSize: 1.0,
+                              expand: false,
+                              builder: (BuildContext context, ScrollController scrollController) => Column(
+                                children: [
+                                  Expanded(
+                                    child: Consumer<MultiTapped>(
+                                      builder: (context, multiTappedProvider, child) => ListView(
+                                        controller: scrollController,
+                                        children: [
                                           Container(
-                                            height: screenHeight,
-                                            width: screenWidth,
+                                            height: MediaQuery.of(context).size.height,
+                                            width: MediaQuery.of(context).size.width,
                                             padding: EdgeInsets.only(
-                                              top: screenHeight * 0.06,
-                                              left: screenWidth * 0.09,
-                                              right: screenWidth * 0.09,
+                                              top: MediaQuery.of(context).size.height * 0.06,
+                                              left: MediaQuery.of(context).size.width * 0.09,
+                                              right: MediaQuery.of(context).size.width * 0.09,
                                             ),
                                             decoration: const BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.vertical(
-                                                top: Radius.circular(20),
+                                              borderRadius: BorderRadius.vertical(
+                                                top: Radius.circular(30),
                                               ),
                                               color: Colors.white,
                                             ),
                                             child: Column(
                                               children: [
                                                 Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
                                                         Text(
                                                           'Select Tags',
                                                           style: TextStyle(
-                                                            fontSize:
-                                                                screenHeight *
-                                                                    0.037,
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontSize: MediaQuery.of(context).size.height * 0.037,
+                                                            fontWeight: FontWeight.bold,
                                                             color: Colors.black,
                                                             height: 0,
                                                           ),
                                                         ),
                                                         Padding(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                                  vertical:
-                                                                      screenHeight *
-                                                                          0.007),
+                                                          padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height * 0.007),
                                                           child: Text(
                                                             'you can choose up-to: 3 tags',
                                                             softWrap: true,
-                                                            style: textStyle(
-                                                              screenHeight *
-                                                                  0.017,
-                                                              FontWeight.w500,
-                                                              Colors.grey,
+                                                            style: TextStyle(
+                                                              fontSize: MediaQuery.of(context).size.height * 0.017,
+                                                              fontWeight: FontWeight.w500,
+                                                              color: Colors.grey,
                                                             ),
                                                           ),
                                                         ),
@@ -309,24 +379,18 @@ class _MyTagBookState extends State<MyTagBook> {
                                                     ),
                                                     GestureDetector(
                                                       onTap: () {
+                                                       tagBookProvider.setDefaultValues();
                                                         Navigator.pop(context);
                                                       },
                                                       child: Material(
                                                         elevation: 6,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(60),
-                                                        child:
-                                                            const CircleAvatar(
+                                                        borderRadius: BorderRadius.circular(60),
+                                                        child: const CircleAvatar(
                                                           radius: 25,
-                                                          backgroundColor:
-                                                              Colors.black,
+                                                          backgroundColor: Colors.black,
                                                           child: Icon(
-                                                            CupertinoIcons
-                                                                .xmark,
-                                                            color:
-                                                                CupertinoColors
-                                                                    .white,
+                                                            CupertinoIcons.xmark,
+                                                            color: CupertinoColors.white,
                                                             size: 25,
                                                           ),
                                                         ),
@@ -334,178 +398,88 @@ class _MyTagBookState extends State<MyTagBook> {
                                                     ),
                                                   ],
                                                 ),
-                                                const SpacedBoxBig(),
+                                                const SizedBox(height: 16), // Replace SpacedBoxBig with SizedBox
                                                 SelectTagsMenu(
-                                                  screenHeight: screenHeight,
-                                                  pressed:
-                                                      Provider.of<MultiTapped>(
-                                                              context)
-                                                          .isTapped,
+                                                  screenHeight: MediaQuery.of(context).size.height,
+                                                  pressed: multiTappedProvider.isTapped,
                                                   onPressed: () {
-                                                    Provider.of<MultiTapped>(
-                                                            context,
-                                                            listen: false)
-                                                        .tapped();
+                                                    multiTappedProvider.tapped();
                                                   },
-                                                  title: Provider.of<
-                                                              TagBookProvider>(
-                                                          context)
-                                                      .getTagTitle1,
-                                                  image: Provider.of<
-                                                              TagBookProvider>(
-                                                          context)
-                                                      .getImageTitle1,
-                                                  tagID: Provider.of<
-                                                              TagBookProvider>(
-                                                          context)
-                                                      .getTagID1,
-                                                  callNumber: 1,
+                                                  title: tagBookProvider.getTagTitle1,
+                                                  image: tagBookProvider.getImageTitle1,
+                                                  tagID: tagBookProvider.getTagID1,
+                                                  callNumber: 1, filterTags: false,
                                                 ),
-                                                Provider.of<MultiTapped>(
-                                                            context)
-                                                        .isTapped
+                                                multiTappedProvider.isTapped
+                                                    ? const SizedBox() : SelectTagsMenu(
+                                                  screenHeight: MediaQuery.of(context).size.height,
+                                                  pressed: multiTappedProvider.isTapped1,
+                                                  onPressed: () {
+                                                    multiTappedProvider.tapped1();
+                                                  },
+                                                  title: tagBookProvider.getTagTitle2,
+                                                  image: tagBookProvider.getImageTitle2,
+                                                  tagID: tagBookProvider.getTagID2,
+                                                  callNumber: 2, filterTags: false,
+                                                ),
+                                                multiTappedProvider.isTapped || multiTappedProvider.isTapped1
                                                     ? const SizedBox()
                                                     : SelectTagsMenu(
-                                                        screenHeight:
-                                                            screenHeight,
-                                                        pressed: Provider.of<
-                                                                    MultiTapped>(
-                                                                context)
-                                                            .isTapped1,
-                                                        onPressed: () {
-                                                          Provider.of<MultiTapped>(
-                                                                  context,
-                                                                  listen: false)
-                                                              .tapped1();
-                                                        },
-                                                        title: Provider.of<
-                                                                    TagBookProvider>(
-                                                                context)
-                                                            .getTagTitle2,
-                                                        image: Provider.of<
-                                                                    TagBookProvider>(
-                                                                context)
-                                                            .getImageTitle2,
-                                                        tagID: Provider.of<
-                                                                    TagBookProvider>(
-                                                                context)
-                                                            .getTagID2,
-                                                        callNumber: 2,
-                                                      ),
-                                                Provider.of<MultiTapped>(
-                                                                context)
-                                                            .isTapped ||
-                                                        Provider.of<MultiTapped>(
-                                                                context)
-                                                            .isTapped1
-                                                    ? const SizedBox()
-                                                    : SelectTagsMenu(
-                                                        screenHeight:
-                                                            screenHeight,
-                                                        pressed: Provider.of<
-                                                                    MultiTapped>(
-                                                                context)
-                                                            .isTapped2,
-                                                        onPressed: () {
-                                                          Provider.of<MultiTapped>(
-                                                                  context,
-                                                                  listen: false)
-                                                              .tapped2();
-                                                        },
-                                                        title: Provider.of<
-                                                                    TagBookProvider>(
-                                                                context)
-                                                            .getTagTitle3,
-                                                        image: Provider.of<
-                                                                    TagBookProvider>(
-                                                                context)
-                                                            .getImageTitle3,
-                                                        tagID: Provider.of<
-                                                                    TagBookProvider>(
-                                                                context)
-                                                            .getTagID3,
-                                                        callNumber: 3,
-                                                      ),
-                                                const SpacedBox(),
+                                                  screenHeight: MediaQuery.of(context).size.height,
+                                                  pressed: multiTappedProvider.isTapped2,
+                                                  onPressed: () {
+                                                    multiTappedProvider.tapped2();
+                                                  },
+                                                  title: tagBookProvider.getTagTitle3,
+                                                  image: tagBookProvider.getImageTitle3,
+                                                  tagID: tagBookProvider.getTagID3,
+                                                  callNumber: 3, filterTags: false,
+                                                ),
+                                                const SizedBox(height: 16), // Replace SpacedBox with SizedBox
                                                 ContButton(
-                                                    func: () {
-                                                      if (Provider.of<TagBookProvider>(context, listen: false).getTagID1 != '' ||
-                                                          Provider.of<TagBookProvider>(
-                                                                      context,
-                                                                      listen:
-                                                                          false)
-                                                                  .getTagID2 !=
-                                                              '' ||
-                                                          Provider.of<TagBookProvider>(
-                                                                      context,
-                                                                      listen:
-                                                                          false)
-                                                                  .getTagID3 !=
-                                                              '') {
-                                                        Provider.of<TagBookProvider>(
-                                                                    context,
-                                                                    listen:
-                                                                        false)
-                                                                .getTagID1
-                                                                .isNotEmpty
-                                                            ? listsOfTags.add(
-                                                                Provider.of<TagBookProvider>(
-                                                                        context,
-                                                                        listen:
-                                                                            false)
-                                                                    .getTagID1)
-                                                            : null;
-                                                        Provider.of<TagBookProvider>(
-                                                                    context,
-                                                                    listen:
-                                                                        false)
-                                                                .getTagID2
-                                                                .isNotEmpty
-                                                            ? listsOfTags.add(
-                                                                Provider.of<TagBookProvider>(
-                                                                        context,
-                                                                        listen:
-                                                                            false)
-                                                                    .getTagID2)
-                                                            : null;
-                                                        Provider.of<TagBookProvider>(
-                                                                    context,
-                                                                    listen:
-                                                                        false)
-                                                                .getTagID3
-                                                                .isNotEmpty
-                                                            ? listsOfTags.add(
-                                                                Provider.of<TagBookProvider>(
-                                                                        context,
-                                                                        listen:
-                                                                            false)
-                                                                    .getTagID3)
-                                                            : null;
-                                                        Navigator.pop(context);
-                                                      }
-                                                    },
-                                                    txt: 'Add Tags',
-                                                    bgColor: Colors.black,
-                                                    txtColor: Colors.white,
-                                                    showLoader: false),
-                                                const SpacedBox(),
+                                                  func: () {
+                                                    listsOfTags.clear();
+                                                    if (tagBookProvider.getTagID1 != '' ||
+                                                        tagBookProvider.getTagID2 != '' ||
+                                                        tagBookProvider.getTagID3 != '') {
+                                                      tagBookProvider.getTagID1.isNotEmpty ? listsOfTags.add(tagBookProvider.getTagID1) : null;
+                                                      tagBookProvider.getTagID2.isNotEmpty ? listsOfTags.add(tagBookProvider.getTagID2) : null;
+                                                      tagBookProvider.getTagID3.isNotEmpty ? listsOfTags.add(tagBookProvider.getTagID3) : null;
+                                                      Navigator.pop(context);
+                                                    }
+                                                  },
+                                                  txt: tagBookProvider.getTagID1 != '' ||
+                                                tagBookProvider.getTagID2 != '' ||
+                                                tagBookProvider.getTagID3 != ''?'Update Tags':'Add Tags', bgColor: Colors.black, txtColor: Colors.white, showLoader: false,
+                                                ),
+                                                const SizedBox(height: 16), // Replace SpacedBox with SizedBox
                                                 Text(
                                                   'add new tag',
-                                                  style: textStyle(
-                                                      screenHeight * 0.017,
-                                                      FontWeight.w400,
-                                                      Colors.grey.shade400),
+                                                  style: TextStyle(
+                                                    fontSize: MediaQuery.of(context).size.height * 0.017,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: Colors.grey.shade400,
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ]),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            child: SvgPicture.asset('assets/images/tags.svg'),
-                          ),
+                                  Padding(
+                                    padding: EdgeInsets.all(screenHeight*0.022),
+                                    child: Text('keep all your important links and texts tagged in one place, ready whenever you need them. ',textAlign: TextAlign.center,style:
+                                    textStyle(MediaQuery.sizeOf(context).height*0.017,FontWeight.w500, Colors.black),),
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: SvgPicture.asset('assets/images/tags.svg'),
+                      ),
                           SizedBox(
                             width: screenWidth * 0.07,
                           ),
@@ -539,16 +513,30 @@ class _MyTagBookState extends State<MyTagBook> {
                               ),
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () async {
-                             setState(() {
-                               posts.add(FetchPosts(content: postTextEditingController.text, iconImage: ''));
-                             });
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.white,surfaceTintColor: Colors.white,splashFactory: NoSplash.splashFactory,
+                            foregroundColor: CupertinoColors.white,elevation: 0),
+                            onPressed: () async {
                               if (postTextEditingController.text.isNotEmpty) {
                                 if (await createPost(postTextEditingController.text, listsOfTags)) {
+                                  if(!mounted)return;
+                                  setState(() {
+                                    posts.add(
+                                      FetchPosts(
+                                        content: postTextEditingController.text,
+                                        image1: Provider.of<TagBookProvider>(context,listen: false).getImageTitle1,
+                                        image2: Provider.of<TagBookProvider>(context,listen: false).getImageTitle2,
+                                        image3: Provider.of<TagBookProvider>(context,listen: false).getImageTitle3,
+                                        dateCreated:  DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                                      ),
+                                    );
+                                  },
+                                  );
                                   postTextEditingController.setText('');
                                   listsOfTags.clear();
                                 }
+                                if(!mounted)return;
+                                Provider.of<TagBookProvider>(context,listen: false).setDefaultValues();
                               }
                               setState(() {
                                 ur1 = '';
@@ -578,13 +566,13 @@ class _MyTagBookState extends State<MyTagBook> {
 class SelectTagsMenu extends StatefulWidget {
   const SelectTagsMenu(
       {super.key,
-      required this.screenHeight,
-      required this.pressed,
-      required this.onPressed,
-      required this.title,
-      required this.image,
-      required this.tagID,
-      required this.callNumber});
+        required this.screenHeight,
+        required this.pressed,
+        required this.onPressed,
+        required this.title,
+        required this.image,
+        required this.tagID,
+        required this.callNumber, required this.filterTags});
 
   final double screenHeight;
   final bool pressed;
@@ -593,6 +581,7 @@ class SelectTagsMenu extends StatefulWidget {
   final String image;
   final String tagID;
   final int callNumber;
+  final bool filterTags;
   @override
   State<SelectTagsMenu> createState() => _SelectTagsMenuState();
 }
@@ -601,9 +590,11 @@ class _SelectTagsMenuState extends State<SelectTagsMenu> {
   bool selected = false;
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height:
-          widget.pressed ? widget.screenHeight / 2 : widget.screenHeight / 13,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: widget.screenHeight / 13,
+        maxHeight: widget.pressed ? widget.screenHeight / 2 : widget.screenHeight / 13,
+      ),
       child: GestureDetector(
         onTap: widget.onPressed,
         child: Material(
@@ -616,6 +607,7 @@ class _SelectTagsMenuState extends State<SelectTagsMenu> {
             bottomRight: Radius.circular(widget.pressed ? 20 : 30),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 decoration: BoxDecoration(
@@ -625,16 +617,13 @@ class _SelectTagsMenuState extends State<SelectTagsMenu> {
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    radius: widget.screenHeight * 0.026,
-                    backgroundColor: Colors.white,
+                  leading: Container(
+                    width: widget.screenHeight * 0.05,
+                   decoration: BoxDecoration(color: Colors.white,shape: BoxShape.circle,border: Border.all(color: Colors.grey.shade300)),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Center(
-                        child:
-                            widget.image.startsWith('assets/images/Vector.svg')
-                                ? SvgPicture.asset(widget.image)
-                                : SvgPicture.network(widget.image),
+                        child: widget.image.isEmpty?SvgPicture.asset('assets/images/Vector.svg'):SvgPicture.network(widget.image),
                       ),
                     ),
                   ),
@@ -643,7 +632,7 @@ class _SelectTagsMenuState extends State<SelectTagsMenu> {
                     style: textStyle(
                       widget.screenHeight * 0.018,
                       FontWeight.bold,
-                      Colors.black,
+                      Colors.grey.shade500,
                     ),
                   ),
                   trailing: Icon(
@@ -657,86 +646,86 @@ class _SelectTagsMenuState extends State<SelectTagsMenu> {
               ),
               if (widget.pressed)
                 Flexible(
-                  child: ListView.builder(
+                  child: ListView.separated(
                     itemCount: tags.length,
+                    shrinkWrap: true,
                     itemBuilder: (context, idx) => Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         GestureDetector(
                           onTap: () {
                             // Call the onSelection callback
-                            if (widget.callNumber == 1) {
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .setTagID1(tags[idx].tagID);
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .changeImage1(tags[idx].iconImage);
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .changeTitle1(tags[idx].tagName);
-                            } else if (widget.callNumber == 2) {
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .setTagID2(tags[idx].tagID);
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .changeImage2(tags[idx].iconImage);
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .changeTitle2(tags[idx].tagName);
-                            } else {
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .setTagID3(tags[idx].tagID);
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .changeImage3(tags[idx].iconImage);
-                              Provider.of<TagBookProvider>(context,
-                                      listen: false)
-                                  .changeTitle3(tags[idx].tagName);
-                            }
                             setState(() {
                               selected = true;
-                              if (selected) {
-                                if (widget.pressed) {
-                                  if (widget.callNumber == 1)
-                                    Provider.of<MultiTapped>(context,
-                                            listen: false)
-                                        .tapped();
-                                  if (widget.callNumber == 2)
-                                    Provider.of<MultiTapped>(context,
-                                            listen: false)
-                                        .tapped1();
-                                  if (widget.callNumber == 3)
-                                    Provider.of<MultiTapped>(context,
-                                            listen: false)
-                                        .tapped2();
-                                }
-                              }
                             });
+                            if (selected) {
+                              if (widget.pressed) {
+                                 widget.filterTags?{
+                                 if (widget.callNumber == 1) {
+                                   Provider.of<TagBookProvider2>(context, listen: false).setTagID1(tags[idx].tagID),
+                                   Provider.of<TagBookProvider2>(context, listen: false).changeImage1(tags[idx].iconImage),
+                                   Provider.of<TagBookProvider2>(context, listen: false).changeTitle1(tags[idx].tagName),
+                                   Provider.of<MultiTapped>(context, listen: false).tapped(),
+                                 },
+                                 if (widget.callNumber == 2) {
+                                   Provider.of<MultiTapped>(context, listen: false).tapped1(),
+                                   Provider.of<TagBookProvider2>(context, listen: false).setTagID2(tags[idx].tagID),
+                                   Provider.of<TagBookProvider2>(context, listen: false).changeImage2(tags[idx].iconImage),
+                                   Provider.of<TagBookProvider2>(context, listen: false).changeTitle2(tags[idx].tagName),
+                                 },
+                                 if (widget.callNumber == 3) {
+                                   Provider.of<MultiTapped>(context, listen: false).tapped2(),
+                                   Provider.of<TagBookProvider2>(context, listen: false).setTagID3(tags[idx].tagID),
+                                   Provider.of<TagBookProvider2>(context, listen: false).changeImage3(tags[idx].iconImage),
+                                   Provider.of<TagBookProvider2>(context, listen: false).changeTitle3(tags[idx].tagName),
+                                 }
+                                 }:{
+                                   if (widget.callNumber == 1) {
+                                     Provider.of<TagBookProvider>(context, listen: false).setTagID1(tags[idx].tagID),
+                                     Provider.of<TagBookProvider>(context, listen: false).changeImage1(tags[idx].iconImage),
+                                     Provider.of<TagBookProvider>(context, listen: false).changeTitle1(tags[idx].tagName),
+                                     Provider.of<MultiTapped>(context, listen: false).tapped(),
+                                   },
+                                   if (widget.callNumber == 2) {
+                                     Provider.of<MultiTapped>(context, listen: false).tapped1(),
+                                     Provider.of<TagBookProvider>(context, listen: false).setTagID2(tags[idx].tagID),
+                                     Provider.of<TagBookProvider>(context, listen: false).changeImage2(tags[idx].iconImage),
+                                     Provider.of<TagBookProvider>(context, listen: false).changeTitle2(tags[idx].tagName),
+                                   },
+                                   if (widget.callNumber == 3) {
+                                     Provider.of<MultiTapped>(context, listen: false).tapped2(),
+                                     Provider.of<TagBookProvider>(context, listen: false).setTagID3(tags[idx].tagID),
+                                     Provider.of<TagBookProvider>(context, listen: false).changeImage3(tags[idx].iconImage),
+                                     Provider.of<TagBookProvider>(context, listen: false).changeTitle3(tags[idx].tagName),
+                                   }
+                                 };
+                              }
+                            }
                           },
                           child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              child: SvgPicture.network(tags[idx].iconImage),
+                            leading: Container(
+                              width: widget.screenHeight * 0.05,
+                              decoration: BoxDecoration(color: Colors.white,shape: BoxShape.circle,border: Border.all(color: Colors.grey.shade300)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: SvgPicture.network(tags[idx].iconImage),
+                              ),
                             ),
                             title: Text(
                               tags[idx].tagName,
                               style: textStyle(
-                                widget.screenHeight * 0.018,
+                                widget.screenHeight * 0.019,
                                 FontWeight.bold,
                                 Colors.black,
                               ),
                             ),
                           ),
                         ),
-                        const Divider(
-                          thickness: 0.5,
-                        ),
                         const SpacedBox(),
                       ],
-                    ),
+                    ), separatorBuilder: (BuildContext context, int index) { return  const Divider(
+                    thickness: 0.5,
+                  );  },
                   ),
                 ),
             ],
@@ -752,18 +741,20 @@ class Posts extends StatelessWidget {
     super.key,
     required this.controller,
     required this.url,
-    required this.message,
+    required this.message, required this.image1, required this.image2, required this.image3, required this.dateCreated,
   });
   final TextEditingController controller;
   final String url;
   final String message;
+  final String dateCreated;
+  final String image1;
+  final String image2;
+  final String image3;
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.sizeOf(context).height;
     var screenWidth = MediaQuery.sizeOf(context).width;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          vertical: screenHeight * 0.008, horizontal: screenWidth * 0.06),
+    return Padding(padding: EdgeInsets.symmetric(vertical: screenHeight * 0.006, horizontal: screenWidth * 0.06),
       child: Container(
         margin: EdgeInsets.only(top: screenHeight * 0.015),
         decoration: BoxDecoration(
@@ -771,12 +762,11 @@ class Posts extends StatelessWidget {
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.04, vertical: screenHeight * 0.02),
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenHeight * 0.02),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
+              url.isNotEmpty?Container(
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.grey.shade300,
@@ -792,7 +782,7 @@ class Posts extends StatelessWidget {
                   link: url,
                   cache: const Duration(hours: 1),
                 ),
-              ),
+              ): const SizedBox(),
               const SpacedBox(),
               Text(
                 url,
@@ -810,12 +800,22 @@ class Posts extends StatelessWidget {
                 color: Colors.grey.shade300,
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(Provider.of<TagBookProvider>(context, listen: false)
-                      .getTagID1),
+                  SizedBox(
+                    height: screenHeight*0.02,
+                    child:  image1.isNotEmpty?SvgPicture.network(image1):null,
+                  ),
+                  SizedBox(
+                    height: screenHeight*0.02,
+                    child:  image2.isNotEmpty?SvgPicture.network(image2):null,
+                  ),
+                  SizedBox(
+                    height: screenHeight*0.02,
+                    child:  image3.isNotEmpty?SvgPicture.network(image3):null,
+                  ),
+                  const Spacer(),
                   Text(
-                    '20-10-24 | 10:26 pm',
+                    dateCreated.substring(0,10),
                     style: textStyle(screenHeight * 0.017, FontWeight.w400,
                         Colors.grey.shade500),
                   )

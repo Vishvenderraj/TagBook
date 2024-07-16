@@ -10,7 +10,6 @@ import 'package:tag_book/Menu/Profile/my_profile.dart';
 import 'package:tag_book/my_tagbook.dart';
 import '../Menu/MyTags/EditTags/edit_tags.dart';
 import '../Menu/menu.dart';
-import '../auth/data/Fetch_ApiData/fetch_apidata.dart';
 import '../common/styles/styles.dart';
 import '../common/widgets/custom_fields_and_button.dart';
 
@@ -22,11 +21,6 @@ class IntroPage extends StatefulWidget {
 }
 
 class _IntroPageState extends State<IntroPage> {
-  @override
-  void initState() {
-    fetchUserData();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,14 +127,12 @@ class _IntroPageState extends State<IntroPage> {
                           onTap: () async {
                             final pref = await SharedPreferences.getInstance();
                             if (!mounted) return;
-                            Navigator.push(
-                              context,
+                            Navigator.push(context,
                               MaterialPageRoute(
                                 builder: (context) => ChangeNotifierProvider(
-                                  create: (BuildContext context) =>
-                                      Tapped(true),
+                                  create: (BuildContext context) => Tapped(true),
                                   child: MyProfile(
-                                    userID: '${pref.getString("authToken")}',
+                                    userID: '${pref.getString("userID")}',
                                     regDates: '${pref.getString("regDate")}',
                                   ),
                                 ),
@@ -276,10 +268,19 @@ class _IntroPageState extends State<IntroPage> {
               BottomPageButton(
                 text: "Add to Tag Book",
                 func: () async{
+                  if(posts.isEmpty){
+                    await getAllPosts();
+                  }
+
+                  if(tags.isEmpty){
+                    await getAllTag();
+                  }
+
                   if(!mounted)return;
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>ChangeNotifierProvider(create: (BuildContext context) => MultiTapped(),
-                    child: const MyTagBook()),
-                  ),);
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> ChangeNotifierProvider(create: (BuildContext context) { return Tapped(false); },
+                  child: const MyTagBook()),
+                  ),
+                  );
                 },
                 bgColor: Colors.black,
                 textStyle: textStyle(20, FontWeight.w700, Colors.white),

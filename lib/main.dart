@@ -1,13 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/common/widgets/loader_provider.dart';
+import 'package:tag_book/provider_tagbook.dart';
 import 'auth/func/firebase_options/firebase_options.dart';
 import 'auth/func/validate_authdata/validate_authdata.dart';
+import 'common/styles/styles.dart';
 import 'root/intro_page.dart';
 import 'auth/screen/login/log_in.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,13 +40,18 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late Future<String> _tokenFuture;
-
+  late bool _internetConnection;
+  
   @override
   void initState() {
     super.initState();
     _tokenFuture = getSavedToken();
+    getConnection();
   }
 
+  getConnection() async{
+    _internetConnection = await InternetConnectionCheckerPlus().hasConnection;
+  }
   Future<String> getSavedToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken') ?? '';
@@ -80,9 +89,12 @@ class _MyAppState extends State<MyApp> {
               ),
               ChangeNotifierProvider(
                 create: (BuildContext context) {
-                  return ShowLoader();
+                  return ShowLoader(false);
                 },
               ),
+              ChangeNotifierProvider(create: (context)=>TagBookProvider(),),
+              ChangeNotifierProvider(create: (context)=>TagBookProvider2(),),
+              ChangeNotifierProvider(create: (context)=>MultiTapped(),),
             ],
             child: MaterialApp(
               title: 'MyTagBook',
@@ -98,7 +110,14 @@ class _MyAppState extends State<MyApp> {
                 ),
                 useMaterial3: true,
               ),
-              home: token.isEmpty ? const LogIn() : const IntroPage(),
+              home: _internetConnection?token.isEmpty ? const LogIn() : const IntroPage(): Container(
+                height: MediaQuery.sizeOf(context).height,
+                width: MediaQuery.sizeOf(context).width,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: SvgPicture.asset('assets/images/noInternetConnection.svg',fit: BoxFit.contain,),
+              ),
             ),
           );
         }
