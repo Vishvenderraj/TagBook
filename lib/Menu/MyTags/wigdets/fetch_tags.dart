@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 List<FetchTags>tags = [];
 List<FetchPosts>posts = [];
 
+
 //Post API
 class FetchPosts{
   final String content;
@@ -31,9 +32,26 @@ class FetchPosts{
       dateCreated: json['createdAt'],
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'content': content,
+      'tagId': [
+        {
+          'icon': {'iconImage': image1}
+        },
+        {
+          'icon': {'iconImage': image2}
+        },
+        {
+          'icon': {'iconImage': image3}
+        }
+      ],
+      'createdAt': dateCreated,
+    };
+  }
 }
 
-Future<bool> createPost(String content, List<String> listoftags) async{
+Future<bool> createPost(String content, List<String> listOfTags) async{
 
   String url = 'https://tag-book-1.onrender.com/api/v1/common/createPost';
   final pref = await SharedPreferences.getInstance();
@@ -47,20 +65,15 @@ Future<bool> createPost(String content, List<String> listoftags) async{
       },
       body: jsonEncode({
         "content": content,
-        "tagId": listoftags,
+        "tagId": listOfTags,
       }),
     );
-    print('${pref.getString('authToken')}');
-    print(createPost.statusCode);
-    print(jsonDecode(createPost.body)['code']);
     if(jsonDecode(createPost.body)['code'] == 201)
       {
-        print("ok");
         return true;
       }
     else
       {
-        print("f");
         return false;
       }
   }
@@ -70,7 +83,8 @@ Future<bool> createPost(String content, List<String> listoftags) async{
   }
 
 }
-Future<List<FetchPosts>> getAllPosts() async{
+
+Future<void> getAllPosts() async{
   final pref = await SharedPreferences.getInstance();
   String url = 'https://tag-book-1.onrender.com/api/v1/common/getPost/';
 
@@ -83,14 +97,25 @@ Future<List<FetchPosts>> getAllPosts() async{
   if(getAllPosts.statusCode == 200)
     {
       List<dynamic> data = json.decode(getAllPosts.body)['data'];
-      posts = data.map((post) => FetchPosts.fromJson(post)).toList();
-      return data.map((post) => FetchPosts.fromJson(post)).toList();
+      List<FetchPosts> allPosts = data.map((post) => FetchPosts.fromJson(post)).toList();
+      String postJson = json.encode(allPosts.map((post) => post.toJson()).toList());
 
+      await pref.setString('Posts', postJson);
     }
   else
     {
-      throw Exception("faulty");
+      throw Exception("Failed to load posts");
     }
+}
+Future<void> getStoredPosts() async {
+  final pref = await SharedPreferences.getInstance();
+  pref.getString('Posts')!.isEmpty? await getAllPosts():null;
+  String? postJson = pref.getString('Posts');
+
+  if (postJson != null) {
+    List<dynamic> data = json.decode(postJson);
+    posts = data.map((tag) => FetchPosts.fromJson(tag)).toList();
+  }
 }
 
 
@@ -114,10 +139,21 @@ class FetchTags {
 
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': tagID,
+      'tagName': tagName,
+      'icon': {
+        'iconImage': iconImage,
+        '_id': iconID,
+      },
+      'description': descr,
+    };
+  }
 }
 
 
-Future<List<FetchTags>> getAllTag() async {
+Future<void> getAllTag() async {
   final pref = await SharedPreferences.getInstance();
   String url = 'https://tag-book-1.onrender.com/api/v1/common/getAllTags';
 
@@ -132,11 +168,27 @@ Future<List<FetchTags>> getAllTag() async {
   if (getAllTags.statusCode == 200) {
 
     List<dynamic> data = json.decode(getAllTags.body)['data'];
-    tags = data.map((tag) => FetchTags.fromJson(tag)).toList();
-    return data.map((tag) => FetchTags.fromJson(tag)).toList();
+    List<FetchTags> listOfTags =  data.map((tag) => FetchTags.fromJson(tag)).toList();
+    String tagsJson = json.encode(listOfTags.map((tag) => tag.toJson()).toList());
+
+    await pref.setString('tags', tagsJson);
   } else {
-    throw Exception("none works");
+    throw Exception("Failed to load tags");
   }
+}
+Future<void> getStoredTags() async {
+  final pref = await SharedPreferences.getInstance();
+  pref.getString('tags')!.isEmpty? await getAllTag():null;
+  String? tagsJson = pref.getString('tags');
+
+  if (tagsJson != null) {
+    List<dynamic> data = json.decode(tagsJson);
+    tags = data.map((tag) => FetchTags.fromJson(tag)).toList();
+  }
+  else
+    {
+      throw Exception('Failed to load Tags');
+    }
 }
 Future<bool> createTag(String tagName, String icon, String description) async {
   String url = 'https://tag-book-1.onrender.com/api/v1/common/createTag';

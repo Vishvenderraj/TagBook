@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'Menu/MyTags/wigdets/fetch_tags.dart';
+import '../../Menu/MyTags/wigdets/fetch_tags.dart';
 
 List<String> listOfFilterIds = [];
 List<FetchPosts> filteredPosts = [];

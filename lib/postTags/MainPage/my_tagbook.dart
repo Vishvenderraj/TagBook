@@ -7,10 +7,10 @@ import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/common/styles/styles.dart';
-import 'package:tag_book/common/widgets/custom_fields_and_button.dart';
-import 'package:tag_book/provider_tagbook.dart';
+import 'package:tag_book/postTags/PostTagSelection/post_tag_selection.dart';
+import 'package:tag_book/postTags/Provider/provider_tagbook.dart';
 
-import 'filter_tag.dart';
+import '../FilterTags/filter_tag.dart';
 
 List<String> listsOfTags = [];
 
@@ -22,14 +22,20 @@ class MyTagBook extends StatefulWidget {
 }
 
 class _MyTagBookState extends State<MyTagBook> {
-  TextEditingController postTextEditingController = TextEditingController();
+  final TextEditingController _postTextEditingController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  String _searchTerm = '';
+  List<int> highlightedIndexes = [];
+  int _currentIndex = -1;  // Keeps track of the index of the currently highlighted word
+
 
   String ur1 = '';
   String message = '';
   int count = 0;
 
-
-    bool _getUrlValid(String url) {
+  bool _getUrlValid(String url) {
       bool isUrlValid = AnyLinkPreview.isValidLink(
        url,
         protocols: ['http', 'https'],
@@ -38,13 +44,6 @@ class _MyTagBookState extends State<MyTagBook> {
       );
       return isUrlValid;
     }
-
-  @override
-  void dispose() {
-    postTextEditingController.dispose();
-    super.dispose();
-  }
-
   void validateContent(String string) {
     final text = string.split(RegExp(r'[ \n]'));
     final link = text.isNotEmpty ? text.first : '';
@@ -62,6 +61,97 @@ class _MyTagBookState extends State<MyTagBook> {
       });
     }
   }
+  void _highlightSearchResults(String searchTerm) {
+    highlightedIndexes.clear();
+    for (int i = 0; i < posts.length; i++) {
+      if (posts[i].content.toLowerCase().contains(searchTerm.toLowerCase()))
+      {
+        highlightedIndexes.add(i);
+      }
+    }
+    if (highlightedIndexes.isNotEmpty) {
+      setState(() {
+        _currentIndex = 0;
+      });
+      _scrollToHighlighted(_currentIndex);
+    } else {
+      setState(() {
+        _currentIndex = -1;
+      });
+    }
+  }
+
+  void _scrollToHighlighted(int index) {
+    double itemHeight = MediaQuery.sizeOf(context).height*0.25; // Adjust based on your item height
+    double offset = highlightedIndexes[index] * itemHeight;
+    _scrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _previousHighlight() {
+    if (_currentIndex > 0) {
+      setState(() {
+        _currentIndex--;
+      });
+      _scrollToHighlighted(_currentIndex);
+    }
+  }
+
+  void _nextHighlight() {
+    if (_currentIndex < highlightedIndexes.length - 1) {
+      setState(() {
+        _currentIndex++;
+      });
+      _scrollToHighlighted(_currentIndex);
+    }
+  }
+
+  Widget _buildHighlightedText(String text, String searchTerm) {
+    if (searchTerm.isEmpty) {
+      return Text(
+        text,
+        style: TextStyle(fontSize: MediaQuery.sizeOf(context).height*0.015, fontWeight: FontWeight.w500, color: Colors.black,
+        ),
+      );
+    }
+
+    List<TextSpan> spans = [];
+    int start = 0;
+    int index;
+    while ((index = text.toLowerCase().indexOf(searchTerm.toLowerCase(), start)) != -1) {
+      if (index > start) {
+        spans.add(TextSpan(
+          text: text.substring(start, index),
+          style:  TextStyle(fontSize: MediaQuery.sizeOf(context).height*0.015, fontWeight: FontWeight.w500, color: Colors.black),
+        ));
+      }
+      spans.add(TextSpan(
+        text: text.substring(index, index + searchTerm.length),
+        style:  TextStyle(fontSize: MediaQuery.sizeOf(context).height*0.015, fontWeight: FontWeight.w500, backgroundColor: Colors.black),
+      ));
+      start = index + searchTerm.length;
+    }
+    spans.add(TextSpan(
+      text: text.substring(start),
+      style: TextStyle(fontSize: MediaQuery.sizeOf(context).height*0.015, fontWeight: FontWeight.w500, color: Colors.black),
+    ));
+
+    return RichText(text: TextSpan(children: spans));
+  }
+
+
+  @override
+  void dispose() {
+    _postTextEditingController.dispose();
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+
 
 
   @override
@@ -81,8 +171,7 @@ class _MyTagBookState extends State<MyTagBook> {
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
+              children: [Padding(
             padding: EdgeInsets.only(
             left: screenWidth * 0.05,
                 top: screenHeight * 0.04,
@@ -169,13 +258,13 @@ class _MyTagBookState extends State<MyTagBook> {
                 Provider.of<Tapped>(context).isTapped?Padding(
                   padding:EdgeInsets.only(
                     top: screenHeight * 0.0125,
-                      left: screenWidth * 0.05,
+                      left: screenWidth * 0.02,
 
                   ),
                   child: Row(
                     children: [
                       Expanded(
-                        flex: 2,
+                        flex:2,
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
@@ -189,9 +278,10 @@ class _MyTagBookState extends State<MyTagBook> {
                                 autocorrect: false,
                                 keyboardType: TextInputType.multiline,
                                 textInputAction: TextInputAction.newline,
-                                controller: postTextEditingController,
-                                onChanged: (string) {
-                                  validateContent(string);
+                                controller: _searchController,
+                                onChanged: (value){
+                                  _searchTerm = _searchController.text;
+                                  _highlightSearchResults(_searchController.text);
                                 },
                                 decoration: InputDecoration(
                                   hintText: 'Search within all notes',
@@ -214,23 +304,24 @@ class _MyTagBookState extends State<MyTagBook> {
                           ),
                         ),
                       ),
-                      SizedBox(width: screenWidth*0.02,),
-                      Expanded(
-                        flex: 1,
-                        child:  Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      SizedBox(width: screenWidth*0.01,),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal:screenWidth*0.03),
+                        child: Row(
                           children: [
-                            const Icon(CupertinoIcons.chevron_up,color: Colors.grey,),
-                            SizedBox(width: screenWidth*0.02,),
-                            const Icon(CupertinoIcons.chevron_down,color: Colors.grey,),
-                            SizedBox(width: screenWidth*0.02,),
+                            IconButton(
+                              onPressed: _previousHighlight,
+                                icon: const Icon(CupertinoIcons.chevron_up,color: Colors.grey,),
+                            ),
+                            IconButton(
+                                onPressed: _nextHighlight,icon: const Icon(CupertinoIcons.chevron_down,color: Colors.grey,)),
                             Container(color: Colors.black,width: 2,height: 25,),
-                            SizedBox(width: screenWidth*0.02,),
-                            GestureDetector(
-                                onTap: (){
-                                  Provider.of<Tapped>(context).tapped();
+                            IconButton(
+                                onPressed: (){
+                                  Provider.of<Tapped>(context,listen: false).tapped();
+                                  _searchController.clear();
                                 },
-                                child: const Icon(Icons.close,color: Colors.black,),)
+                                icon: const Icon(Icons.close,color: Colors.black,),)
                           ],
                         ),
                       ),
@@ -247,11 +338,12 @@ class _MyTagBookState extends State<MyTagBook> {
           children: [
             Expanded(
               child:ListView.builder(
+                controller: _scrollController,
                 itemCount: filterOn?filteredPosts.length:posts.length,
                 itemBuilder: (context, index) {
                   bool checkForValidUrl = _getUrlValid(posts[index].content.split(RegExp(r'[ \n]')).first);
                      return Posts(
-                       controller: postTextEditingController,
+                       controller: _postTextEditingController,
                        url: checkForValidUrl? (
                            filterOn?
                            filteredPosts[index].content.split(RegExp(r'[ \n]')).first:
@@ -259,12 +351,12 @@ class _MyTagBookState extends State<MyTagBook> {
                        ):'',
                        message: checkForValidUrl?(
                            filterOn?
-                           filteredPosts[index].content.replaceAll(posts[index].content.split(RegExp(r'[ \n]')).first, '').trim():
-                           posts[index].content.replaceAll(posts[index].content.split(RegExp(r'[ \n]')).first, '').trim()
-                       ):posts[index].content,
+                           _buildHighlightedText(filteredPosts[index].content.replaceAll(posts[index].content.split(RegExp(r'[ \n]')).first, '').trim(), _searchTerm) :
+                           _buildHighlightedText(posts[index].content.replaceAll(posts[index].content.split(RegExp(r'[ \n]')).first, '').trim(), _searchTerm)
+                       ):_buildHighlightedText(posts[index].content, _searchTerm),
                        image1:   filterOn?filteredPosts[index].image1:posts[index].image1,
                        image2:   filterOn?filteredPosts[index].image2:posts[index].image2,
-                       image3:   filterOn?filteredPosts[index].image3:posts[index].image3,
+                       image3:  filterOn?filteredPosts[index].image3:posts[index].image3,
                        dateCreated:  filterOn?filteredPosts[index].dateCreated:posts[index].dateCreated,
                      );
                 },
@@ -309,27 +401,35 @@ class _MyTagBookState extends State<MyTagBook> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                         ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.white,surfaceTintColor: Colors.white,splashFactory: NoSplash.splashFactory,
-                              foregroundColor: CupertinoColors.white,elevation: 0),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.white,surfaceTintColor: Colors.white,splashFactory: NoSplash.splashFactory, foregroundColor: CupertinoColors.white,elevation: 0),
                         onPressed: () {
                           final tagBookProvider = Provider.of<TagBookProvider>(context, listen: false);
                           showModalBottomSheet(
                             enableDrag: false,
-                            isScrollControlled: true,
+                            isScrollControlled: false,
                             isDismissible: true,
                             backgroundColor: Colors.white,
                             context: context,
-                            builder: (BuildContext context) => DraggableScrollableSheet(
-                              initialChildSize: 0.5,
-                              minChildSize: 0.5,
-                              maxChildSize: 1.0,
-                              expand: false,
-                              builder: (BuildContext context, ScrollController scrollController) => Column(
+                            builder: (BuildContext context) => GestureDetector(
+                              behavior: HitTestBehavior.translucent,
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=> PostTagSelection(tagBookProvider: tagBookProvider),),);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.white
+                                ),
+                                height: screenHeight/2,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(screenHeight*0.01),
+                                    child: PostTagSelection(tagBookProvider: tagBookProvider),
+                                  )),
+                            )/* Column(
                                 children: [
                                   Expanded(
                                     child: Consumer<MultiTapped>(
                                       builder: (context, multiTappedProvider, child) => ListView(
-                                        controller: scrollController,
                                         children: [
                                           Container(
                                             height: MediaQuery.of(context).size.height,
@@ -474,8 +574,7 @@ class _MyTagBookState extends State<MyTagBook> {
                                     textStyle(MediaQuery.sizeOf(context).height*0.017,FontWeight.w500, Colors.black),),
                                   )
                                 ],
-                              ),
-                            ),
+                              ),*/
                           );
                         },
                         child: SvgPicture.asset('assets/images/tags.svg'),
@@ -490,7 +589,7 @@ class _MyTagBookState extends State<MyTagBook> {
                               autocorrect: false,
                               keyboardType: TextInputType.multiline,
                               textInputAction: TextInputAction.newline,
-                              controller: postTextEditingController,
+                              controller: _postTextEditingController,
                               onChanged: (string) {
                                 validateContent(string);
                               },
@@ -517,13 +616,13 @@ class _MyTagBookState extends State<MyTagBook> {
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.white,surfaceTintColor: Colors.white,splashFactory: NoSplash.splashFactory,
                             foregroundColor: CupertinoColors.white,elevation: 0),
                             onPressed: () async {
-                              if (postTextEditingController.text.isNotEmpty) {
-                                if (await createPost(postTextEditingController.text, listsOfTags)) {
+                              if (_postTextEditingController.text.isNotEmpty) {
+                                if (await createPost(_postTextEditingController.text, listsOfTags)) {
                                   if(!mounted)return;
                                   setState(() {
                                     posts.add(
                                       FetchPosts(
-                                        content: postTextEditingController.text,
+                                        content: _postTextEditingController.text,
                                         image1: Provider.of<TagBookProvider>(context,listen: false).getImageTitle1,
                                         image2: Provider.of<TagBookProvider>(context,listen: false).getImageTitle2,
                                         image3: Provider.of<TagBookProvider>(context,listen: false).getImageTitle3,
@@ -532,7 +631,7 @@ class _MyTagBookState extends State<MyTagBook> {
                                     );
                                   },
                                   );
-                                  postTextEditingController.setText('');
+                                  _postTextEditingController.setText('');
                                   listsOfTags.clear();
                                 }
                                 if(!mounted)return;
@@ -544,7 +643,7 @@ class _MyTagBookState extends State<MyTagBook> {
                             },
                             child: SvgPicture.asset(
                               'assets/images/disabledEnterButton.svg',
-                              color: postTextEditingController.text.isNotEmpty
+                              color: _postTextEditingController.text.isNotEmpty
                                   ? Colors.blue
                                   : null,
                             ),
@@ -745,7 +844,7 @@ class Posts extends StatelessWidget {
   });
   final TextEditingController controller;
   final String url;
-  final String message;
+  final Widget message;
   final String dateCreated;
   final String image1;
   final String image2;
@@ -790,11 +889,12 @@ class Posts extends StatelessWidget {
                     screenHeight * 0.017, FontWeight.bold, Colors.blue),
               ),
               const SpacedBox(),
-              Text(
+              message,
+              /*Text(
                 message,
                 style: textStyle(
                     screenHeight * 0.017, FontWeight.w500, Colors.black),
-              ),
+              ),*/
               const SpacedBox(),
               Divider(
                 color: Colors.grey.shade300,

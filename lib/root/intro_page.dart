@@ -4,11 +4,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/fetch_tagicons.dart';
-import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
-import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import 'package:tag_book/Menu/Profile/my_profile.dart';
-import 'package:tag_book/my_tagbook.dart';
-import '../Menu/MyTags/EditTags/edit_tags.dart';
+import 'package:tag_book/postTags/MainPage/my_tagbook.dart';
+import '../Menu/MyTags/EditTags/create_edit_tags.dart';
 import '../Menu/menu.dart';
 import '../common/styles/styles.dart';
 import '../common/widgets/custom_fields_and_button.dart';
@@ -75,28 +73,23 @@ class _IntroPageState extends State<IntroPage> {
                               height: screenHeight * 0.25,
                               child: Image.asset('assets/images/image 2.png')),
                         ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Title(
+                        Title(
+                          color: Colors.black,
+                          child: Text(
+                            'My Tag Book',
+                            softWrap: true,
+                            style: TextStyle(
+                              fontSize: screenHeight * 0.034,
+                              fontWeight: FontWeight.bold,
                               color: Colors.black,
-                              child: Text(
-                                'My Tag Book',
-                                softWrap: true,
-                                style: TextStyle(
-                                  fontSize: screenHeight * 0.034,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
                             ),
-                            Text(
-                              "last updated: No records",
-                              softWrap: true,
-                              style: textStyle(screenHeight * 0.017,
-                                  FontWeight.w700, Colors.grey.shade500),
-                            ),
-                          ],
+                          ),
+                        ),
+                        Text(
+                          "last updated: No records",
+                          softWrap: true,
+                          style: textStyle(screenHeight * 0.017,
+                              FontWeight.w700, Colors.grey.shade500),
                         ),
                         const SpacedBoxBig(),
                         Text(
@@ -156,53 +149,43 @@ class _IntroPageState extends State<IntroPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             GestureDetector(
-                              onTap: () async {
-                                List<FetchIcons> iconList = await fetchAllIconData();
-                                if (iconList.isEmpty && !mounted) return;
-                                showModalBottomSheet(
+                              onTap: ()  {
+                                  showModalBottomSheet(
                                   enableDrag: false,
-                                  isScrollControlled: true,
+                                  isScrollControlled: false,
                                   isDismissible: true,
+                                  backgroundColor: Colors.white,
                                   context: context,
-                                  builder: (context) => DraggableScrollableSheet(
-                                    initialChildSize: 0.5,
-                                    minChildSize: 0.5,
-                                    maxChildSize: 1.0,
-                                    expand: false,
-                                    builder: (BuildContext context, ScrollController scrollController) =>
-                                        ListView(
-                                            controller: scrollController,
-                                            children: [
-                                          Container(
+                                  builder: (context) => GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>EditTags(addTag: true, iconLists: iconList),),);
+                                    },
+                                    child: Container(
+                                      height: screenHeight/2,
+                                      width: screenWidth,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: screenWidth * 0.01,
+                                          vertical: screenHeight * 0.028,
+                                        ),
+                                        child: SingleChildScrollView(
+                                          child: SizedBox(
                                             height: screenHeight,
-                                            width: screenWidth,
-                                            decoration: const BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(20),
-                                                topRight: Radius.circular(20),
-                                              ),
-                                            ),
-                                            child: MultiProvider(
-                                              providers: [
-                                                ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),),
-                                                ChangeNotifierProvider(create: (BuildContext context) => TagEditProvider(),),
-                                              ],
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal:
-                                                      screenWidth * 0.01,
-                                                  vertical:
-                                                      screenHeight * 0.028,
-                                                ),
-                                                child: EditTags(
-                                                  addTag: true,
-                                                  iconLists: iconList,
-                                                ),
-                                              ),
+                                            child: EditTags(
+                                              addTag: true,
+                                              iconLists: iconList,
                                             ),
                                           ),
-                                        ]),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
@@ -266,21 +249,11 @@ class _IntroPageState extends State<IntroPage> {
               ),
               const SpacedBoxBig(),
               BottomPageButton(
-                text: "Add to Tag Book",
-                func: () async{
-                  if(posts.isEmpty){
-                    await getAllPosts();
-                  }
-
-                  if(tags.isEmpty){
-                    await getAllTag();
-                  }
-
-                  if(!mounted)return;
+                text: "Add To Tag Book",
+                func: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context)=> ChangeNotifierProvider(create: (BuildContext context) { return Tapped(false); },
                   child: const MyTagBook()),
-                  ),
-                  );
+                  ),);
                 },
                 bgColor: Colors.black,
                 textStyle: textStyle(20, FontWeight.w700, Colors.white),

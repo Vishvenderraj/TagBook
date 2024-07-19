@@ -38,25 +38,12 @@ class _EditTagsState extends State<EditTags> {
     return PopScope(
       canPop: false,
       onPopInvoked: (isPop)
-      async{
-        if(isPop)
-          {
-           return;
-          }
+      async
+      {
+        if(isPop) return;
         widget.addTag?Navigator.pop(context):{
           Navigator.pop(context),
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MultiProvider(
-        providers: [
-        ChangeNotifierProvider(
-        create: (BuildContext context) =>
-        IconProvider(),
-        ),
-        ChangeNotifierProvider(
-        create: (BuildContext context) =>
-        TagEditProvider(),
-        ),
-        ],
-        child: MyTags(allTags: tags)),))
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> const MyTags(),),),
         };
       },
       child: Scaffold(
@@ -79,18 +66,27 @@ class _EditTagsState extends State<EditTags> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.addTag ? 'Create a Tag' : 'Edit Tags',
-                          style: TextStyle(
-                            fontSize: screenHeight * 0.037,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            height: 0,
+                        Title(
+                          color: Colors.black,
+                          child: Row(
+                            children: [
+                              SvgPicture.asset('assets/images/tags.svg'),
+                              SizedBox(width: screenWidth*0.02,),
+                              Text(
+                                widget.addTag ? 'Create a Tag' : 'Edit Tags',
+                                softWrap: true,
+                                style: TextStyle(
+                                  fontSize: screenHeight * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: screenHeight * 0.005),
+                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.005,
+                          ),
                           child: Text(
                             widget.addTag
                                 ? 'you can manage tags: from my profile'
@@ -106,7 +102,7 @@ class _EditTagsState extends State<EditTags> {
                       onTap: () {
                         widget.addTag?Navigator.pop(context):{
                           Navigator.pop(context),
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MyTags(allTags: tags),),)
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const MyTags(),),)
                         };
                       },
                       child: Material(
@@ -150,7 +146,8 @@ class _EditTagsState extends State<EditTags> {
                   controller: tagName,
                   keyboardType: TextInputType.text,
                   validField: Provider.of<TagEditProvider>(context).validTagName,
-                  onPressed: () {},
+                  onPressed: () {
+                  },
                   visibility: false,
                 ),
                 const SpacedBoxBig(),
@@ -169,7 +166,7 @@ class _EditTagsState extends State<EditTags> {
                   ],
                 ),
                 const SpacedBox(),
-                       Consumer<IconProvider>(
+                Consumer<IconProvider>(
                         builder: (context, iconProvider, child) {
                           return SizedBox(
                             height: screenHeight * 0.065,
@@ -268,7 +265,6 @@ class _EditTagsState extends State<EditTags> {
                               Provider.of<ShowLoader>(context,listen: false).startLoader();
                               if(await createTag(tagName.text, Provider.of<IconProvider>(context,listen: false).selectedIconId!, descr.text) && (mounted))
                                 {
-                                  tags = await getAllTag();
                                   if(!mounted) return;
                                   Provider.of<ShowLoader>(context,listen: false).stopLoader();
                                   showModalBottomSheet(
@@ -331,7 +327,6 @@ class _EditTagsState extends State<EditTags> {
                             Provider.of<ShowLoader>(context,listen: false).startLoader();
                            if( await editTag(tagName: tagName.text, tagID: widget.tagID!, iconID: Provider.of<IconProvider>(context,listen: false).selectedIconId ?? widget.iconID!, description: descr.text) && (mounted))
                              {
-                               tags = await getAllTag();
                                if(!mounted) return;
                                Provider.of<ShowLoader>(context,listen: false).stopLoader();
                              }

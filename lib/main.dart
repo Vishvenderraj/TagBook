@@ -1,11 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tagicons.dart';
 import 'package:tag_book/common/widgets/loader_provider.dart';
-import 'package:tag_book/provider_tagbook.dart';
+import 'package:tag_book/postTags/Provider/provider_tagbook.dart';
+import 'package:tag_book/root/user_tag_page.dart';
+import 'Menu/MyTags/wigdets/fetch_tags.dart';
+import 'Menu/MyTags/wigdets/provider_icos.dart';
 import 'auth/func/firebase_options/firebase_options.dart';
 import 'auth/func/validate_authdata/validate_authdata.dart';
 import 'common/styles/styles.dart';
@@ -40,13 +44,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late Future<String> _tokenFuture;
-  late bool _internetConnection;
+  bool _internetConnection = true;
   
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+     tags.isEmpty?_loadTags():null;
+     iconList.isEmpty?_loadIcons():null;
+     posts.isEmpty?_loadPosts():null;
+     getConnection();
+    });
     _tokenFuture = getSavedToken();
-    getConnection();
+    print(posts.length);
   }
 
   getConnection() async{
@@ -55,6 +65,27 @@ class _MyAppState extends State<MyApp> {
   Future<String> getSavedToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken') ?? '';
+  }
+  Future<void> _loadTags() async {
+    try {
+     await getStoredTags();
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+  Future<void> _loadIcons() async {
+    try {
+      await getStoredIcons();
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+  Future<void> _loadPosts() async {
+    try {
+      await getStoredPosts();
+    } catch (e) {
+      throw Exception(e);
+    }
   }
 
   @override
@@ -82,19 +113,13 @@ class _MyAppState extends State<MyApp> {
           final String token = snapshot.data ?? '';
           return MultiProvider(
             providers: [
-              ChangeNotifierProvider(
-                create: (BuildContext context) {
-                  return UserValidator();
-                },
-              ),
-              ChangeNotifierProvider(
-                create: (BuildContext context) {
-                  return ShowLoader(false);
-                },
-              ),
+              ChangeNotifierProvider(create: (context) => UserValidator(),),
+              ChangeNotifierProvider(create: (context) => ShowLoader(false),),
               ChangeNotifierProvider(create: (context)=>TagBookProvider(),),
               ChangeNotifierProvider(create: (context)=>TagBookProvider2(),),
               ChangeNotifierProvider(create: (context)=>MultiTapped(),),
+              ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),),
+              ChangeNotifierProvider(create: (BuildContext context) => TagEditProvider(),),
             ],
             child: MaterialApp(
               title: 'MyTagBook',
@@ -110,7 +135,10 @@ class _MyAppState extends State<MyApp> {
                 ),
                 useMaterial3: true,
               ),
-              home: _internetConnection?token.isEmpty ? const LogIn() : const IntroPage(): Container(
+              home:  _internetConnection?token.isEmpty ?
+              const LogIn() : tags.isEmpty?
+              const IntroPage(): const UserTagPage():
+              Container(
                 height: MediaQuery.sizeOf(context).height,
                 width: MediaQuery.sizeOf(context).width,
                 decoration: const BoxDecoration(

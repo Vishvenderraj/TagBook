@@ -2,15 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:tag_book/Menu/MyTags/EditTags/edit_tags.dart';
+import 'package:tag_book/Menu/MyTags/EditTags/create_edit_tags.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/fetch_tagicons.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import '../../common/styles/styles.dart';
 
 class MyTags extends StatefulWidget {
-  const MyTags({super.key, required this.allTags});
-  final List<FetchTags> allTags;
+  const MyTags({super.key});
 
   @override
   State<MyTags> createState() => _MyTagsState();
@@ -85,37 +84,36 @@ class _MyTagsState extends State<MyTags> {
               const SpacedBoxLarge(),
               Expanded(
                 child: ListView.builder(
-                  itemCount: widget.allTags.length,
+                  itemCount: tags.length,
                   itemBuilder: (context, index) => SelectedTags(
                     screenHeight: screenHeight,
                     screenWidth: screenWidth,
-                    tagID: widget.allTags[index].tagID,
-                    image: widget.allTags[index].iconImage,
-                    title: widget.allTags[index].tagName,
+                    tagID: tags[index].tagID,
+                    image: tags[index].iconImage,
+                    title: tags[index].tagName,
                     func: () async {
-                      List<FetchIcons> iconList = await fetchAllIconData();
                       if (!mounted) return;
-                      Provider.of<IconProvider>(context,listen: false).selectTag(widget.allTags[index].iconID);
+                      Provider.of<IconProvider>(context,listen: false).selectTag(tags[index].iconID);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => MultiProvider(
                             providers: [
                               ChangeNotifierProvider(
-                                create: (BuildContext context) =>
+                                create: (context) =>
                                     IconProvider(),
                               ),
                               ChangeNotifierProvider(
-                                create: (BuildContext context) =>
+                                create: (context) =>
                                     TagEditProvider(),
                               ),
                             ],
                             child: EditTags(
                               addTag: false,
-                              tagID: widget.allTags[index].tagID,
-                              iconID: widget.allTags[index].iconID,
-                              tagDescr: widget.allTags[index].descr,
-                              tagName: widget.allTags[index].tagName,
+                              tagID: tags[index].tagID,
+                              iconID: tags[index].iconID,
+                              tagDescr: tags[index].descr,
+                              tagName: tags[index].tagName,
                               iconLists: iconList,
                             ),
                           ),

@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/ForgotPassword/confirm_oldpassword.dart';
 import 'package:tag_book/Menu/MyTags/my_tags.dart';
-import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import 'package:tag_book/auth/data/Fetch_ApiData/fetch_apidata.dart';
 import 'package:tag_book/policies/terms&conditions/terms_n_conditions.dart';
@@ -246,17 +245,12 @@ class _MenuState extends State<Menu> {
                       title: 'My Tags',
                       bgColor: Colors.yellow,
                       image: 'assets/images/menu2.svg',
-                      onTap: () async{
-                        if(tags.isEmpty)
-                        {
-                            tags =  await getAllTag();
-                        }
-                        if(!mounted) return;
+                      onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),
-                            child: MyTags(allTags: tags,),),
+                            child: const MyTags(),),
                           ),
                         );
                       },
