@@ -17,6 +17,11 @@ class IconProvider with ChangeNotifier {
     return iconID == null || iconID.isEmpty?_isSelected = false: _isSelected = true;
   }
 
+  void reset()
+  {
+    _selectedIconId = null;
+  }
+
 }
 
 class TagEditProvider with ChangeNotifier{

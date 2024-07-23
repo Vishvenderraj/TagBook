@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/fetch_tagicons.dart';
+import 'package:tag_book/Menu/MyTags/wigdets/fetch_tags.dart';
 import 'package:tag_book/Menu/Profile/my_profile.dart';
 import 'package:tag_book/postTags/MainPage/my_tagbook.dart';
 import '../Menu/MyTags/EditTags/create_edit_tags.dart';
@@ -157,7 +158,9 @@ class _IntroPageState extends State<IntroPage> {
                                   backgroundColor: Colors.white,
                                   context: context,
                                   builder: (context) => GestureDetector(
-                                    onTap: (){
+                                    onTap: () async{
+                                      iconList.isEmpty?await getStoredIcons():null;
+                                      if(!mounted) return;
                                       Navigator.push(context, MaterialPageRoute(builder: (context)=>EditTags(addTag: true, iconLists: iconList),),);
                                     },
                                     child: Container(
@@ -250,7 +253,10 @@ class _IntroPageState extends State<IntroPage> {
               const SpacedBoxBig(),
               BottomPageButton(
                 text: "Add To Tag Book",
-                func: () {
+                func: () async{
+                  print(posts);
+                  posts.isEmpty?await getStoredPosts() : null;
+                  if(!mounted) return;
                   Navigator.push(context, MaterialPageRoute(builder: (context)=> ChangeNotifierProvider(create: (BuildContext context) { return Tapped(false); },
                   child: const MyTagBook()),
                   ),);

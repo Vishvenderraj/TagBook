@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tag_book/Menu/MyTags/EditTags/create_edit_tags.dart';
 import 'package:tag_book/postTags/Provider/provider_tagbook.dart';
 
+import '../../Menu/MyTags/wigdets/fetch_tagicons.dart';
 import '../../common/styles/styles.dart';
 import '../../common/widgets/custom_fields_and_button.dart';
 import '../MainPage/my_tagbook.dart';
@@ -24,8 +26,8 @@ final TagBookProvider tagBookProvider;
                     width: MediaQuery.of(context).size.width,
                     padding: EdgeInsets.only(
                       top: MediaQuery.of(context).size.height * 0.06,
-                      left: MediaQuery.of(context).size.width * 0.09,
-                      right: MediaQuery.of(context).size.width * 0.09,
+                      left: MediaQuery.of(context).size.width * 0.08,
+                      right: MediaQuery.of(context).size.width * 0.08,
                     ),
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.vertical(
@@ -67,7 +69,6 @@ final TagBookProvider tagBookProvider;
                             ),
                             GestureDetector(
                               onTap: () {
-                                tagBookProvider.setDefaultValues();
                                 Navigator.pop(context);
                               },
                               child: Material(
@@ -134,6 +135,7 @@ final TagBookProvider tagBookProvider;
                               tagBookProvider.getTagID2.isNotEmpty ? listsOfTags.add(tagBookProvider.getTagID2) : null;
                               tagBookProvider.getTagID3.isNotEmpty ? listsOfTags.add(tagBookProvider.getTagID3) : null;
                               Navigator.pop(context);
+                              Navigator.pop(context);
                             }
                           },
                           txt: tagBookProvider.getTagID1 != '' ||
@@ -141,12 +143,17 @@ final TagBookProvider tagBookProvider;
                               tagBookProvider.getTagID3 != ''?'Update Tags':'Add Tags', bgColor: Colors.black, txtColor: Colors.white, showLoader: false,
                         ),
                         const SizedBox(height: 16), // Replace SpacedBox with SizedBox
-                        Text(
-                          'add new tag',
-                          style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.017,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey.shade400,
+                        GestureDetector(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>EditTags(addTag: true, iconLists: iconList),),);
+                          },
+                          child: Text(
+                            'add new tag',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.height * 0.017,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
                         ),
                       ],

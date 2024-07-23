@@ -126,7 +126,7 @@ Future<bool> logInSignup(String mobile, String password, String type) async {
       if (type == "login") {
         _token = jsonDecode(response.body)["token"];
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', _token!);
+        prefs.setString('authToken', _token!);
         print(_token);
       } // Extract token from response
       // Store token using SharedPreferences or similar method for future API requests

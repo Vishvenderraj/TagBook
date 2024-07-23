@@ -83,43 +83,43 @@ class _MyTagsState extends State<MyTags> {
               ),
               const SpacedBoxLarge(),
               Expanded(
-                child: ListView.builder(
-                  itemCount: tags.length,
-                  itemBuilder: (context, index) => SelectedTags(
-                    screenHeight: screenHeight,
-                    screenWidth: screenWidth,
-                    tagID: tags[index].tagID,
-                    image: tags[index].iconImage,
-                    title: tags[index].tagName,
-                    func: () async {
-                      if (!mounted) return;
-                      Provider.of<IconProvider>(context,listen: false).selectTag(tags[index].iconID);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MultiProvider(
-                            providers: [
-                              ChangeNotifierProvider(
-                                create: (context) =>
-                                    IconProvider(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: screenHeight*0.01),
+                  child: ListView.builder(
+                    itemCount: tags.length,
+                    itemBuilder: (context, index) => SelectedTags(
+                      screenHeight: screenHeight,
+                      screenWidth: screenWidth,
+                      tagID: tags[index].tagID,
+                      image: tags[index].iconImage,
+                      title: tags[index].tagName,
+                      func: () async {
+                        iconList.isEmpty? await getStoredIcons():null;
+                        if(!mounted) return;
+                        Provider.of<IconProvider>(context,listen: false).selectTag(tags[index].iconID);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MultiProvider(
+                              providers: [
+                                ChangeNotifierProvider(create: (context) => IconProvider(),
+                                ),
+                                ChangeNotifierProvider(create: (context) => TagEditProvider(),
+                                ),
+                              ],
+                              child: EditTags(
+                                addTag: false,
+                                tagID: tags[index].tagID,
+                                iconID: tags[index].iconID,
+                                tagDescr: tags[index].descr,
+                                tagName: tags[index].tagName,
+                                iconLists: iconList,
                               ),
-                              ChangeNotifierProvider(
-                                create: (context) =>
-                                    TagEditProvider(),
-                              ),
-                            ],
-                            child: EditTags(
-                              addTag: false,
-                              tagID: tags[index].tagID,
-                              iconID: tags[index].iconID,
-                              tagDescr: tags[index].descr,
-                              tagName: tags[index].tagName,
-                              iconLists: iconList,
                             ),
                           ),
-                        ),
-                      );
-                    }, isOnline: true,
+                        );
+                      }, isOnline: true,
+                    ),
                   ),
                 ),
               ),

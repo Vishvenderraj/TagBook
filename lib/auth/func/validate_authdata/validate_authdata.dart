@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/auth/screen/login/log_in.dart';
 
+import '../../../Menu/MyTags/wigdets/fetch_tags.dart';
+
 
 //locally validating userEntered Data
 class UserValidator extends ChangeNotifier {
@@ -65,12 +67,18 @@ bool checkValid(String value) {
 //logout Func
 Future<bool> _performLogout() async {
   // Get instance of SharedPreferences
+  posts.clear();
+  tags.clear();
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   // Remove the token and other user-related data
-  bool removedToken = await prefs.remove('authToken');
 
-  return removedToken;
+  bool removedToken = await prefs.remove('authToken');
+  bool removedPosts = await prefs.remove('Posts');
+  bool removedList  = await prefs.remove('tags');
+  bool removedIcons = await prefs.remove('Icons');
+
+  return removedToken && removedIcons && removedList && removedPosts;
 }
 void logout(BuildContext context) {
   _performLogout().then((isSuccess) {

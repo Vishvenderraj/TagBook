@@ -125,8 +125,8 @@ class ContButton extends StatelessWidget {
         height: MediaQuery.sizeOf(context).height * 0.07,
         child: Center(
           child: showLoader?SpinKitFadingCircle(
-            itemBuilder: (BuildContext context, int index) => const DecoratedBox(decoration: BoxDecoration(
-              color: CupertinoColors.white,
+            itemBuilder: (BuildContext context, int index) => DecoratedBox(decoration: BoxDecoration(
+              color: txtColor,
               shape: BoxShape.circle
             )),
           ) : Text(

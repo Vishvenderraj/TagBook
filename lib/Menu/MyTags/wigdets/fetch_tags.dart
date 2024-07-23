@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -94,28 +93,38 @@ Future<void> getAllPosts() async{
       "Content-type": "application/json"
     },
   );
-  if(getAllPosts.statusCode == 200)
+  print(getAllPosts.statusCode);
+  if(getAllPosts.statusCode == 200 && json.decode(getAllPosts.body)['code'] == 200)
     {
+
       List<dynamic> data = json.decode(getAllPosts.body)['data'];
-      List<FetchPosts> allPosts = data.map((post) => FetchPosts.fromJson(post)).toList();
-      String postJson = json.encode(allPosts.map((post) => post.toJson()).toList());
+      String postJson ='';
+      if(data.isNotEmpty)
+     {
+       List<FetchPosts> allPosts = data.map((post) => FetchPosts.fromJson(post)).toList();
+       postJson = json.encode(allPosts.map((post) => post.toJson()).toList());
+       posts = data.map((tag) => FetchPosts.fromJson(tag)).toList();
+     }
 
       await pref.setString('Posts', postJson);
     }
   else
     {
-      throw Exception("Failed to load posts");
+       return;
     }
 }
 Future<void> getStoredPosts() async {
   final pref = await SharedPreferences.getInstance();
-  pref.getString('Posts')!.isEmpty? await getAllPosts():null;
   String? postJson = pref.getString('Posts');
 
   if (postJson != null) {
     List<dynamic> data = json.decode(postJson);
     posts = data.map((tag) => FetchPosts.fromJson(tag)).toList();
   }
+  else
+    {
+      await getAllPosts();
+    }
 }
 
 
@@ -152,7 +161,19 @@ class FetchTags {
   }
 }
 
+Future<void> getStoredTags() async {
+  final pref = await SharedPreferences.getInstance();
+  String? tagsJson = pref.getString('tags');
 
+  if (tagsJson != null) {
+    List<dynamic> data = json.decode(tagsJson);
+    tags = data.map((tag) => FetchTags.fromJson(tag)).toList();
+  }
+  else
+  {
+     await getAllTag();
+  }
+}
 Future<void> getAllTag() async {
   final pref = await SharedPreferences.getInstance();
   String url = 'https://tag-book-1.onrender.com/api/v1/common/getAllTags';
@@ -164,11 +185,12 @@ Future<void> getAllTag() async {
       'Content-Type': 'application/json',
     },
   );
-
-  if (getAllTags.statusCode == 200) {
+  print(json.decode(getAllTags.body)['message']);
+  if (getAllTags.statusCode == 200 && json.decode(getAllTags.body)['code']==200) {
 
     List<dynamic> data = json.decode(getAllTags.body)['data'];
     List<FetchTags> listOfTags =  data.map((tag) => FetchTags.fromJson(tag)).toList();
+    tags = data.map((tag) => FetchTags.fromJson(tag)).toList();
     String tagsJson = json.encode(listOfTags.map((tag) => tag.toJson()).toList());
 
     await pref.setString('tags', tagsJson);
@@ -176,20 +198,43 @@ Future<void> getAllTag() async {
     throw Exception("Failed to load tags");
   }
 }
-Future<void> getStoredTags() async {
+
+/*Future<void> getStoredOrFetchTags() async {
   final pref = await SharedPreferences.getInstance();
-  pref.getString('tags')!.isEmpty? await getAllTag():null;
   String? tagsJson = pref.getString('tags');
 
-  if (tagsJson != null) {
+  if (tagsJson == null || tagsJson.isEmpty) {
+    String url = 'https://tag-book-1.onrender.com/api/v1/common/getAllTags';
+
+    final getAllTags = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer ${pref.getString('authToken')}',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (getAllTags.statusCode == 200) {
+      List<dynamic> data = json.decode(getAllTags.body)['data'];
+      List<FetchTags> listOfTags = data.map((tag) => FetchTags.fromJson(tag)).toList();
+      tagsJson = json.encode(listOfTags.map((tag) => tag.toJson()).toList());
+
+      await pref.setString('tags', tagsJson);
+    } else {
+      throw Exception("Failed to load tags");
+    }
+  }
+
+  if (tagsJson.isNotEmpty) {
     List<dynamic> data = json.decode(tagsJson);
     tags = data.map((tag) => FetchTags.fromJson(tag)).toList();
+  } else {
+    throw Exception('Failed to load Tags');
   }
-  else
-    {
-      throw Exception('Failed to load Tags');
-    }
-}
+}*/
+
+
+
 Future<bool> createTag(String tagName, String icon, String description) async {
   String url = 'https://tag-book-1.onrender.com/api/v1/common/createTag';
   final pref = await SharedPreferences.getInstance();
@@ -207,8 +252,7 @@ Future<bool> createTag(String tagName, String icon, String description) async {
         "description": description,
       }),
     );
-    print( jsonDecode(createTag.body)['code']);
-    print( pref.getString('authToken'));
+
     if (createTag.statusCode == 200 && jsonDecode(createTag.body)['code']!=401) {
       return true;
     } else {
@@ -220,7 +264,6 @@ Future<bool> createTag(String tagName, String icon, String description) async {
 }
 Future<bool> editTag({required String tagName, required String tagID, required String iconID, required String description}) async {
   final pref = await SharedPreferences.getInstance();
-  try {
     String url = 'https://tag-book-1.onrender.com/api/v1/common/editTag/$tagID';
     final editTag = await http.put(
       Uri.parse(url),
@@ -236,21 +279,19 @@ Future<bool> editTag({required String tagName, required String tagID, required S
         },
       ),
     );
-
-    if (editTag.statusCode == 200 && jsonDecode(editTag.body)['code'] == 200) {
+    if (editTag.statusCode == 200 && jsonDecode(editTag.body)["code"]==200) {
       return true;
     } else {
+      print("fkl");
       return false;
     }
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
 }
 Future<bool> deleteTag(String tagId) async {
   final pref = await SharedPreferences.getInstance();
   String authToken = pref.getString('authToken') ?? '';
 
+  print(tagId);
+  print(tagId);
   String url = 'https://tag-book-1.onrender.com/api/v1/common/deleteTagPost/$tagId?type=deleteTag';
 
   final deleteTagResponse = await http.delete(
@@ -261,12 +302,10 @@ Future<bool> deleteTag(String tagId) async {
     },
   );
 
-  if (deleteTagResponse.statusCode == 200) {
-    final responseJson = jsonDecode(deleteTagResponse.body);
-    print(responseJson['code']); // Printing the response code
-    return responseJson['code'] == 200;
+  if (deleteTagResponse.statusCode == 200 && jsonDecode(deleteTagResponse.body)['code'] == 200 ) {
+      return true;
   } else {
-    print('Failed to delete tag. Status code: ${deleteTagResponse.statusCode}');
+    print('Failed to delete tag. Status code: ${jsonDecode(deleteTagResponse.body)}');
     return false;
   }
 }

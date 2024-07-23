@@ -30,17 +30,26 @@ class _FeedBackState extends State<FeedBack> {
       },
     );
   }
+
+  Future _imagePickerCamera() async {
+    final returnedImage = await ImagePicker().pickImage(source: ImageSource.camera);
+    setState(
+          () {
+        returnedImage!=null? _selectedImage = File(returnedImage.path):null;
+      },
+    );
+  }
+
   TextEditingController feedbackTextController = TextEditingController();
 
   @override
-
   void dispose() {
     feedbackTextController.dispose();
     super.dispose();
   }
+  final List<String?> listOfImages = [];
   @override
   Widget build(BuildContext context) {
-    final List<String?> listOfImages = [];
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
@@ -143,6 +152,9 @@ class _FeedBackState extends State<FeedBack> {
                    GestureDetector(
                      onTap:()async{
                        await _imagePickerGallery();
+                       _selectedImage!=null?setState((){
+                         listOfImages.add(_selectedImage?.path);
+                       }):null;
                      },
                      child: CircleAvatar(
                        backgroundColor: Colors.transparent,
@@ -183,7 +195,7 @@ class _FeedBackState extends State<FeedBack> {
                ],
                              ),
               const SpacedBoxBig(),
-              ContButton(func: _selectedImage != null?() async{
+              ContButton(func: feedbackTextController.text.isNotEmpty && _selectedImage != null?() async{
                 Provider.of<ShowLoader>(context,listen: false).startLoader();
                 if(await sentFeedback(widget.type, feedbackTextController.text, listOfImages) && (mounted))
                   {

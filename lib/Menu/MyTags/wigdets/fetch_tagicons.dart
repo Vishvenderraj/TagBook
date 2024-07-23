@@ -35,6 +35,7 @@ Future<void>getAllIcons()async{
     final List<dynamic>data = jsonDecode(getIcons.body)['data'];
     List<FetchIcons> listOfIcons = data.map((item) => FetchIcons.fromJson(item)).toList();
     String iconJson = json.encode(listOfIcons.map((icons) => icons.toJson()).toList());
+    iconList = data.map((icon) => FetchIcons.fromJson(icon)).toList();
 
     await pref.setString('Icons', iconJson);
 
@@ -45,14 +46,14 @@ Future<void>getAllIcons()async{
   }
 }
 Future<void> getStoredIcons() async {
+
   final pref = await SharedPreferences.getInstance();
-  pref.getString('Icons')!.isEmpty? await getAllIcons():null;
   String? iconJson = pref.getString('Icons');
 
   if (iconJson != null) {
     List<dynamic> data = json.decode(iconJson);
     iconList = data.map((icon) => FetchIcons.fromJson(icon)).toList();
   } else {
-    throw Exception('Failed to Icons');
+     await getAllIcons();
   }
 }

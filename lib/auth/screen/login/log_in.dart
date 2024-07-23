@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/auth/screen/signup/sign_up.dart';
+import 'package:tag_book/root/user_tag_page.dart';
 import '../../../ForgotPassword/forgot_password.dart';
+import '../../../Menu/MyTags/wigdets/fetch_tags.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
 import '../../../root/intro_page.dart';
@@ -173,17 +173,16 @@ class _LogInState extends State<LogIn> {
                          showLoader = true;
                        });
                        Provider.of<UserValidator>(context, listen: false).validateValues();
-                       if (await logInSignup(mobileEditingController.text, passwordEditingController.text, "login",)
-                          &&
-                          (mounted) ) {
-                           await fetchUserData();
-                         if(!mounted)return;
-                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-                            builder: (context) => const IntroPage(),
+                       if (await logInSignup(mobileEditingController.text, passwordEditingController.text, "login",)) {
+                         await fetchUserData();
+                         await getAllTag();
+                         if(!mounted) return;
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => tags.isEmpty?const IntroPage():const UserTagPage(),
                       ),(route)=>false);
                       }
                       else
                       {
+                        if(!mounted) return;
                         Provider.of<UserValidator>(context, listen: false).inValidateValues();
                         setState(() {
                           showLoader = false;

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_book/ForgotPassword/reset_password.dart';
 import '../../../common/styles/styles.dart';
 import '../../../common/widgets/custom_fields_and_button.dart';
@@ -68,13 +67,12 @@ class _OTPageState extends State<OTPage> {
   }
 
   Future<void> signInUser() async {
-    if (await logInSignup(widget.userID, widget.userPassKey, "signup") &&
-        (mounted)) {
-        await fetchUserData();
-      if(!mounted)return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
+    if (await logInSignup(widget.userID, widget.userPassKey, "signup")) {
+       await fetchUserData();
+        if(!mounted) return;
+        Navigator.pushAndRemoveUntil(
+         context,
+         MaterialPageRoute(
           builder: (context) => ChangeNotifierProvider(
             create: (BuildContext context) => UserValidator(),
             child: const IntroPage(),
@@ -179,7 +177,7 @@ class _OTPageState extends State<OTPage> {
                               FontWeight.w400, Colors.red),
                         ),
                   GestureDetector(
-                    onTap: () async {
+                    onTap: () {
                       try {
                         phoneVerification(widget.userID,
                             (String verificationId, int? resendToken) {
@@ -196,8 +194,8 @@ class _OTPageState extends State<OTPage> {
                       sec.inSeconds == 0
                           ? "resend it"
                           : (sec.inSeconds > 9
-                              ? "00.${sec.inSeconds}"
-                              : "00.0${sec.inSeconds}"),
+                              ? "00:${sec.inSeconds}"
+                              : "00:0${sec.inSeconds}"),
                       style: textStyle(
                           screenHeight * 0.017, FontWeight.w500, Colors.blue),
                     ),

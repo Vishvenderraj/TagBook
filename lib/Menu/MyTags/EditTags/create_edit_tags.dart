@@ -28,20 +28,22 @@ class _EditTagsState extends State<EditTags> {
   TextEditingController descr = TextEditingController();
   @override
   void initState() {
-    widget.addTag?null:(tagName.text = widget.tagName!,descr.text = widget.tagDescr!);
+    widget.addTag?Provider.of<IconProvider>(context,listen: false).reset():(tagName.text = widget.tagName!,descr.text = widget.tagDescr!);
     super.initState();
   }
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
+
     return PopScope(
       canPop: false,
       onPopInvoked: (isPop)
-      async
-      {
+     async {
         if(isPop) return;
-        widget.addTag?Navigator.pop(context):{
+        await getAllTag();
+       if(!mounted) return;
+        widget.addTag? Navigator.pop(context) :{
           Navigator.pop(context),
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> const MyTags(),),),
         };
@@ -99,8 +101,13 @@ class _EditTagsState extends State<EditTags> {
                       ],
                     ),
                     GestureDetector(
-                      onTap: () {
-                        widget.addTag?Navigator.pop(context):{
+                      onTap: () async{
+                        await getAllTag();
+                        if(!mounted) return;
+                        widget.addTag?
+                        {
+                          Navigator.pop(context)
+                        } :{
                           Navigator.pop(context),
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const MyTags(),),)
                         };
@@ -131,7 +138,7 @@ class _EditTagsState extends State<EditTags> {
                           screenHeight * 0.022, FontWeight.w900, Colors.black),
                     ),
                     widget.addTag?Provider.of<TagEditProvider>(context).validTagName?const SizedBox():Text(
-                      "can't be empty",style: textStyle(screenHeight * 0.017, FontWeight.w400, Colors.red),
+                      "Tag Name can't be empty",style: textStyle(screenHeight * 0.017, FontWeight.w400, Colors.red),
                     ):const SizedBox(),
                   ],
                 ),
@@ -265,17 +272,16 @@ class _EditTagsState extends State<EditTags> {
                               Provider.of<ShowLoader>(context,listen: false).startLoader();
                               if(await createTag(tagName.text, Provider.of<IconProvider>(context,listen: false).selectedIconId!, descr.text) && (mounted))
                                 {
-                                  if(!mounted) return;
                                   Provider.of<ShowLoader>(context,listen: false).stopLoader();
                                   showModalBottomSheet(
                                     context: context,
                                     builder: (BuildContext context) => Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),),
+                                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20),),
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(
                                             horizontal: screenWidth * 0.07,
-                                            vertical: screenHeight * 0.04),
+                                            vertical: screenHeight * 0.04,
+                                        ),
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.end,
                                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -325,11 +331,13 @@ class _EditTagsState extends State<EditTags> {
                           }
                         :() async{
                             Provider.of<ShowLoader>(context,listen: false).startLoader();
-                           if( await editTag(tagName: tagName.text, tagID: widget.tagID!, iconID: Provider.of<IconProvider>(context,listen: false).selectedIconId ?? widget.iconID!, description: descr.text) && (mounted))
+                           if(await editTag(tagName: tagName.text, tagID: widget.tagID!, iconID: Provider.of<IconProvider>(context,listen: false).selectedIconId ?? widget.iconID!, description: descr.text) && (mounted))
                              {
-                               if(!mounted) return;
                                Provider.of<ShowLoader>(context,listen: false).stopLoader();
                              }
+                           else{
+                             print("failed");
+                           }
                           },
                     txt: widget.addTag ? 'Create Tag' : 'Update',
                     bgColor: widget.addTag ? Colors.black : Colors.grey.shade800,
@@ -345,16 +353,22 @@ class _EditTagsState extends State<EditTags> {
                             borderRadius: BorderRadius.circular(30)),
                         child: ContButton(
                           func: () async{
-                            Provider.of<ShowLoader>(context,listen: false).startLoader();
-                            await deleteTag(widget.tagID!);
-                            tags.removeWhere((tag) => tag.tagID == widget.tagID);
+                            print(tags.length);
+                            Provider.of<ShowLoader>(context,listen: false).startLoader2();
+                           if(await deleteTag("669f94733119ec7d7e6f72bd")) {
+                             tags.removeWhere((tag) => tag.tagID == widget.tagID);
+                             if(!mounted)return;
+                             Provider.of<ShowLoader>(context,listen: false).stopLoader2();
+                             Navigator.pop(context);
+                             Navigator.pushReplacement(context,MaterialPageRoute(builder: (context)=>const MyTags()));
+                           }
                             if(!mounted)return;
-                            Provider.of<ShowLoader>(context,listen: false).stopLoader();
+                            Provider.of<ShowLoader>(context,listen: false).stopLoader2();
                           },
                           txt: 'Delete',
                           bgColor: Colors.white,
                           txtColor: Colors.red,
-                          showLoader: false
+                          showLoader: Provider.of<ShowLoader>(context).showLoader2,
                         ),
                       ),
                 const Spacer(),

@@ -8,10 +8,13 @@ import 'package:tag_book/Menu/MyTags/my_tags.dart';
 import 'package:tag_book/Menu/MyTags/wigdets/provider_icos.dart';
 import 'package:tag_book/auth/data/Fetch_ApiData/fetch_apidata.dart';
 import 'package:tag_book/policies/terms&conditions/terms_n_conditions.dart';
+import 'package:tag_book/root/intro_page.dart';
 import '../auth/func/validate_authdata/validate_authdata.dart';
 import '../common/styles/styles.dart';
 import '../common/widgets/custom_fields_and_button.dart';
 import '../common/widgets/form_page.dart';
+import '../root/user_tag_page.dart';
+import 'MyTags/wigdets/fetch_tags.dart';
 import 'Profile/my_profile.dart';
 
 class Menu extends StatefulWidget {
@@ -27,292 +30,301 @@ class _MenuState extends State<Menu> {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
     bool pressed = Provider.of<Counter>(context).isPressed;
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-              top: screenHeight * 0.03,
-              left: screenWidth * 0.08,
-              right: screenWidth * 0.08),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Menu',
-                        style: TextStyle(
-                          fontSize: screenHeight * 0.037,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                          height: 0,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: screenHeight * 0.007),
-                        child: Text(
-                          'hope you find what you looking for',
-                          softWrap: true,
-                          style: textStyle(screenHeight * 0.017,
-                              FontWeight.w500, Colors.grey),
-                        ),
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Material(
-                      elevation: 6,
-                      borderRadius: BorderRadius.circular(60),
-                      child: const CircleAvatar(
-                        radius: 25,
-                        backgroundColor: Colors.black,
-                        child: Icon(
-                          CupertinoIcons.xmark,
-                          color: CupertinoColors.white,
-                          size: 25,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SpacedBoxLarge(),
-              MenuOptions(
-                screenHeight: screenHeight,
-                title: 'My Profile',
-                bgColor: Colors.blue,
-                image: 'assets/images/menu1.svg',
-                onTap: () async{
-                  final pref = await SharedPreferences.getInstance();
-                  if(!mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChangeNotifierProvider(
-                        create: (context) => Tapped(false),
-                        child:  MyProfile(userID: '${pref.getString("userID")}', regDates: '${pref.getString("regDate")}',),
-                      ),
-                    ),
-                  );
-                },
-                iconData: Icons.arrow_forward_ios,
-                needInnerCircle: false,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Provider.of<Counter>(context, listen: false).change();
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
-                  child: Material(
-                    elevation: pressed ? 5 : 0,
-                    shadowColor: Colors.black,
-                    borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(30),
-                        topRight: const Radius.circular(30),
-                        bottomLeft: Radius.circular(pressed ? 20 : 30),
-                        bottomRight: Radius.circular(pressed ? 20 : 30),),
-                    child: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (onPop){
+        if(onPop)return;
+          {
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> tags.isNotEmpty?const UserTagPage():const IntroPage()), (route) => false);
+          }
+    },
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+                top: screenHeight * 0.03,
+                left: screenWidth * 0.08,
+                right: screenWidth * 0.08),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(30),
+                        Text(
+                          'Menu',
+                          style: TextStyle(
+                            fontSize: screenHeight * 0.037,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            height: 0,
                           ),
-                          child: Column(
-                            children: [
-                              ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: Colors.green,
-                                  child: Center(
-                                    child: SvgPicture.asset(
-                                        'assets/images/menu3.svg'),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: screenHeight * 0.007),
+                          child: Text(
+                            'hope you find what you looking for',
+                            softWrap: true,
+                            style: textStyle(screenHeight * 0.017,
+                                FontWeight.w500, Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> tags.isNotEmpty?const UserTagPage():const IntroPage()), (route) => false);
+                      },
+                      child: Material(
+                        elevation: 6,
+                        borderRadius: BorderRadius.circular(60),
+                        child: const CircleAvatar(
+                          radius: 25,
+                          backgroundColor: Colors.black,
+                          child: Icon(
+                            CupertinoIcons.xmark,
+                            color: CupertinoColors.white,
+                            size: 25,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SpacedBoxLarge(),
+                MenuOptions(
+                  screenHeight: screenHeight,
+                  title: 'My Profile',
+                  bgColor: Colors.blue,
+                  image: 'assets/images/menu1.svg',
+                  onTap: () async{
+                    final pref = await SharedPreferences.getInstance();
+                    if(!mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider(
+                          create: (context) => Tapped(false),
+                          child:  MyProfile(userID: '${pref.getString("userID")}', regDates: '${pref.getString("regDate")}',),
+                        ),
+                      ),
+                    );
+                  },
+                  iconData: Icons.arrow_forward_ios,
+                  needInnerCircle: false,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Provider.of<Counter>(context, listen: false).change();
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
+                    child: Material(
+                      elevation: pressed ? 5 : 0,
+                      shadowColor: Colors.black,
+                      borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(30),
+                          topRight: const Radius.circular(30),
+                          bottomLeft: Radius.circular(pressed ? 20 : 30),
+                          bottomRight: Radius.circular(pressed ? 20 : 30),),
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.green,
+                                    child: Center(
+                                      child: SvgPicture.asset(
+                                          'assets/images/menu3.svg'),
+                                    ),
+                                  ),
+                                  title: Text(
+                                        'Security',
+                                    style: textStyle(screenHeight * 0.018,
+                                        FontWeight.bold, Colors.black),
+                                  ),
+                                  trailing: Icon(
+                                    pressed
+                                        ? CupertinoIcons.chevron_up
+                                        : Icons.arrow_forward_ios,
+                                    color: Colors.grey.shade500,
+                                    size: 20,
                                   ),
                                 ),
-                                title: Text(
-                                      'Security',
-                                  style: textStyle(screenHeight * 0.018,
-                                      FontWeight.bold, Colors.black),
-                                ),
-                                trailing: Icon(
-                                  pressed
-                                      ? CupertinoIcons.chevron_up
-                                      : Icons.arrow_forward_ios,
-                                  color: Colors.grey.shade500,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        pressed
-                            ? SizedBox(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context, (MaterialPageRoute(
-                                            builder: (context) =>
-                                                const ConfirmOldPassword(),
-                                          )),
-                                        );
-                                      },
-                                      child: ListTile(
-                                        leading: const CircleAvatar(
-                                          backgroundColor: Colors.green,
-                                          child: Icon(
-                                            Icons.more_horiz_outlined,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        title: Text(
-                                          'Change Pass-Code',
-                                          style: textStyle(screenHeight * 0.018,
-                                              FontWeight.bold, Colors.black),
-                                        ),
-                                      ),
-                                    ),
-                                    const Divider(
-                                      thickness: 0.5,
-                                    ),
-                                    GestureDetector(
-                                      onTap: ()async{
-                                        await getPolicies(type:'privacyAndPolicy');
-                                        if(!mounted) return;
-                                        getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),):null;
-                                      },
-                                      child: ListTile(
-                                        selectedTileColor: Colors.transparent,
-                                         hoverColor: Colors.transparent,
-                                          splashColor: Colors.transparent,
-                                          leading: CircleAvatar(
+                          pressed
+                              ? SizedBox(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context, (MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const ConfirmOldPassword(),
+                                            )),
+                                          );
+                                        },
+                                        child: ListTile(
+                                          leading: const CircleAvatar(
                                             backgroundColor: Colors.green,
-                                            child: SvgPicture.asset(
-                                                'assets/images/security.svg',
+                                            child: Icon(
+                                              Icons.more_horiz_outlined,
+                                              color: Colors.white,
                                             ),
                                           ),
                                           title: Text(
-                                            'Privacy Policies',
+                                            'Change Pass-Code',
                                             style: textStyle(screenHeight * 0.018,
                                                 FontWeight.bold, Colors.black),
-                                          ),),
-                                    ),
-                                    const Divider(
-                                      thickness: 0.5,
-                                    ),
-                                    GestureDetector(
-                                      onTap: ()async{
-                                        await getPolicies(type:'termsAndConditions');
-                                        if(!mounted) return;
-                                        getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),):null;
-                                      },
-                                      child: ListTile(
-                                          leading: CircleAvatar(
-                                            backgroundColor: Colors.green,
-                                            child: SvgPicture.asset(
-                                                'assets/images/security.svg'),
                                           ),
-                                          title: Text(
-                                            'Terms and Conditions',
-                                            style: textStyle(screenHeight * 0.018,
-                                                FontWeight.bold, Colors.black),
-                                          ),),
-                                    ),
-                                    const SpacedBox(),
-                                  ],
-                                ),
-                              )
-                            : const SizedBox(),
-                      ],
+                                        ),
+                                      ),
+                                      const Divider(
+                                        thickness: 0.5,
+                                      ),
+                                      GestureDetector(
+                                        onTap: ()async{
+                                          await getPolicies(type:'privacyAndPolicy');
+                                          if(!mounted) return;
+                                          getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),):null;
+                                        },
+                                        child: ListTile(
+                                          selectedTileColor: Colors.transparent,
+                                           hoverColor: Colors.transparent,
+                                            splashColor: Colors.transparent,
+                                            leading: CircleAvatar(
+                                              backgroundColor: Colors.green,
+                                              child: SvgPicture.asset(
+                                                  'assets/images/security.svg',
+                                              ),
+                                            ),
+                                            title: Text(
+                                              'Privacy Policies',
+                                              style: textStyle(screenHeight * 0.018,
+                                                  FontWeight.bold, Colors.black),
+                                            ),),
+                                      ),
+                                      const Divider(
+                                        thickness: 0.5,
+                                      ),
+                                      GestureDetector(
+                                        onTap: ()async{
+                                          await getPolicies(type:'termsAndConditions');
+                                          if(!mounted) return;
+                                          getSubtitle.isNotEmpty && terms.isNotEmpty? Navigator.push(context, MaterialPageRoute(builder: (context)=>const TermsAndConditions()),):null;
+                                        },
+                                        child: ListTile(
+                                            leading: CircleAvatar(
+                                              backgroundColor: Colors.green,
+                                              child: SvgPicture.asset(
+                                                  'assets/images/security.svg'),
+                                            ),
+                                            title: Text(
+                                              'Terms and Conditions',
+                                              style: textStyle(screenHeight * 0.018,
+                                                  FontWeight.bold, Colors.black),
+                                            ),),
+                                      ),
+                                      const SpacedBox(),
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              !pressed
-                  ? MenuOptions(
-                      screenHeight: screenHeight,
-                      title: 'My Tags',
-                      bgColor: Colors.yellow,
-                      image: 'assets/images/menu2.svg',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),
-                            child: const MyTags(),),
-                          ),
-                        );
-                      },
-                      iconData: Icons.arrow_forward_ios,
-                      needInnerCircle: false,
-                    )
-                  : const SizedBox(),
-              !pressed
-                  ? MenuOptions(
-                      screenHeight: screenHeight,
-                      title: 'Report Bug',
-                      bgColor: Colors.red,
-                      image: 'assets/images/menu4.svg',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FeedBack(
-                                title: 'Report Bug',
-                                subtitle:
-                                    'we appreciate your support: Thank you', type: 'reportBugs',),
-                          ),
-                        );
-                      },
-                      iconData: Icons.arrow_forward_ios,
-                      needInnerCircle: false,
-                    ) : const SizedBox(),
-              const SpacedBoxBig(),
-              ContButton(
-                showLoader: false,
-                func: () {
-                  logout(context);
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
-                txt: 'Logout',
-                bgColor: Colors.black,
-                txtColor: CupertinoColors.white,
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  disabledForegroundColor: CupertinoColors.white,
-                  foregroundColor: CupertinoColors.white
+                !pressed
+                    ? MenuOptions(
+                        screenHeight: screenHeight,
+                        title: 'My Tags',
+                        bgColor: Colors.yellow,
+                        image: 'assets/images/menu2.svg',
+                        onTap: () async {
+                          tags.isEmpty? await getStoredTags():null;
+                          if(!mounted)return;
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => ChangeNotifierProvider(create: (BuildContext context) => IconProvider(),
+                              child: const MyTags(),),
+                            ),
+                          );
+                        },
+                        iconData: Icons.arrow_forward_ios,
+                        needInnerCircle: false,
+                      )
+                    : const SizedBox(),
+                !pressed
+                    ? MenuOptions(
+                        screenHeight: screenHeight,
+                        title: 'Report Bug',
+                        bgColor: Colors.red,
+                        image: 'assets/images/menu4.svg',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FeedBack(
+                                  title: 'Report Bug',
+                                  subtitle:
+                                      'we appreciate your support: Thank you', type: 'reportBugs',),
+                            ),
+                          );
+                        },
+                        iconData: Icons.arrow_forward_ios,
+                        needInnerCircle: false,
+                      ) : const SizedBox(),
+                const SpacedBoxBig(),
+                ContButton(
+                  showLoader: false,
+                  func: () {
+                    logout(context);
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  },
+                  txt: 'Logout',
+                  bgColor: Colors.black,
+                  txtColor: CupertinoColors.white,
                 ),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const FeedBack(title: 'Request Features', subtitle: 'we appreciate your ideas and suggestions', type: 'requestFeatures',),),);
-                },
-                child: Text(
-                  "request features",
-                  style: textStyle(screenHeight * 0.015, FontWeight.w700,
-                      Colors.grey.shade400),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    disabledForegroundColor: CupertinoColors.white,
+                    foregroundColor: CupertinoColors.white
+                  ),
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>const FeedBack(title: 'Request Features', subtitle: 'we appreciate your ideas and suggestions', type: 'requestFeatures',),),);
+                  },
+                  child: Text(
+                    "request features",
+                    style: textStyle(screenHeight * 0.015, FontWeight.w700,
+                        Colors.grey.shade400),
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: screenHeight * 0.03),
-                child: Text(
-                  "version 0.01",
-                  style: textStyle(screenHeight * 0.016, FontWeight.w600,
-                      Colors.grey.shade400),
-                ),
-              )
-            ],
+                const Spacer(),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.03),
+                  child: Text(
+                    "version 0.01",
+                    style: textStyle(screenHeight * 0.016, FontWeight.w600,
+                        Colors.grey.shade400),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
